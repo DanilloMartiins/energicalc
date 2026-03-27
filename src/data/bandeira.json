@@ -1,0 +1,9 @@
+{
+  "vigente": "verde",
+  "valoresKwh": {
+    "verde": 0,
+    "amarela": 0.01874,
+    "vermelha_p1": 0.03971,
+    "vermelha_p2": 0.09492
+  }
+}

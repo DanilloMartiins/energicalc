@@ -1,0 +1,17 @@
+[
+  {
+    "codigo": "ENEL_SP",
+    "nome": "Enel Sao Paulo",
+    "uf": "SP"
+  },
+  {
+    "codigo": "CPFL_PAULISTA",
+    "nome": "CPFL Paulista",
+    "uf": "SP"
+  },
+  {
+    "codigo": "COELBA",
+    "nome": "Neoenergia Coelba",
+    "uf": "BA"
+  }
+]
