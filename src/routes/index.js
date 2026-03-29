@@ -7,6 +7,6 @@ const router = express.Router();
 
 router.get("/distribuidoras", distribuidorasController.listarDistribuidoras);
 router.get("/bandeira", bandeiraController.obterBandeiraAtual);
-router.post("/calculo", calculoController.simularCalculo);
+router.get("/calculo", calculoController.calcular);
 
 module.exports = router;

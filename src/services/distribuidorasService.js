@@ -1,7 +1,7 @@
-const distribuidoras = require("../data/distribuidoras.json");
+const distribuidorasData = require("../data/distribuidorasData");
 
 function listarDistribuidoras() {
-  return distribuidoras;
+  return distribuidorasData.getDistribuidoras();
 }
 
 module.exports = {

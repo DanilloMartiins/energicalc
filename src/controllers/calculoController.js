@@ -98,6 +98,5 @@ function calcular(req, res) {
 }
 
 module.exports = {
-  calcular,
-  simularCalculo: calcular
+  calcular
 };

@@ -4,26 +4,47 @@ API backend em Node.js + Express para simulacao de fatura de energia de distribu
 
 ## Status do projeto
 
-Em desenvolvimento (MVP em construcao).
+Em desenvolvimento (MVP funcional da API).
 
-Ja implementado ate agora:
-- Estrutura base do backend com arquitetura em camadas
-- Bootstrap do Express
-- Rotas iniciais em `/api`
-- Controllers com tratamento de erro
-- Services iniciais usando dados locais em JSON
-- Dados exemplo de distribuidoras e bandeira tarifaria
-- Tratamento global de 404 e JSON invalido
+## Registro de execucao (evolucao por dia)
+
+### 26/03/2026
+- Criacao da estrutura inicial do backend com Node.js + Express
+- Definicao da arquitetura em camadas (`route -> controller -> service -> data`)
+- Implementacao dos arquivos base (`app.js`, `server.js`, rotas, controllers, services e JSONs)
+- Configuracao de scripts (`start` e `dev`) e instalacao das dependencias
+- Primeira versao do README e subida inicial do projeto
+
+### 27/03/2026
+- Revisao geral da base para manter padrao de codigo simples e legivel (nivel Dev Jr bom)
+- Melhorias no tratamento de erros da API (404 e JSON invalido)
+- Ajustes de validacoes no fluxo de calculo e padronizacao das respostas
+- Organizacao de detalhes do projeto para facilitar manutencao
+
+### 28/03/2026
+- Alinhamento do fluxo de calculo ponta a ponta (`route -> controller -> service`)
+- Padronizacao do endpoint de calculo para `GET /api/calculo` com query params
+- Ajustes de validacao para cenarios obrigatorios e entradas invalidas
+- Validacao de cenarios principais de sucesso e erro (400 e 404)
+
+### 29/03/2026
+- Refatoracao da camada de dados para centralizar acesso aos JSON
+- Criacao dos modulos:
+  - `src/data/distribuidorasData.js`
+  - `src/data/bandeiraData.js`
+- Refatoracao dos services para consumir funcoes da camada `data`
+- Atualizacao do README com o estado real da API e historico de evolucao
 
 ## Arquitetura
 
 Padrao usado no projeto:
-- `controller -> service -> data`
+- `route -> controller -> service -> data`
 
 Responsabilidades:
-- `controllers`: leem request, chamam service e retornam JSON
-- `services`: regra de negocio
-- `data`: fonte local em arquivos JSON
+- `routes`: mapeamento de endpoints
+- `controllers`: leitura de request, chamada de service e retorno JSON
+- `services`: regra de negocio e validacoes
+- `data`: acesso centralizado aos dados JSON
 
 ## Stack
 
@@ -52,7 +73,9 @@ Responsabilidades:
 |   |   `-- index.js
 |   `-- data/
 |       |-- distribuidoras.json
-|       `-- bandeira.json
+|       |-- bandeira.json
+|       |-- distribuidorasData.js
+|       `-- bandeiraData.js
 |-- .gitignore
 |-- package.json
 |-- package-lock.json
@@ -97,7 +120,7 @@ npm.cmd start
 ### 1) Health check
 - Metodo: `GET`
 - URL: `/health`
-- Resposta esperada:
+- Resposta:
 
 ```json
 {
@@ -113,10 +136,10 @@ npm.cmd start
 - Metodo: `GET`
 - URL: `/api/bandeira`
 
-### 4) Calculo (controller preparado)
-- Metodo: `POST`
+### 4) Calculo de fatura
+- Metodo: `GET`
 - URL: `/api/calculo`
-- Parametros esperados (query string):
+- Query params obrigatorios:
   - `leituraAnterior`
   - `leituraAtual`
   - `diasDecorridos`
@@ -125,14 +148,29 @@ npm.cmd start
 Exemplo:
 
 ```http
-POST /api/calculo?leituraAnterior=1200&leituraAtual=1350&diasDecorridos=30&distribuidoraId=ENEL_SP
+GET /api/calculo?leituraAnterior=100&leituraAtual=150&diasDecorridos=30&distribuidoraId=1
 ```
 
-Observacao importante:
-- O controller de calculo ja esta validando entrada e tratamento de erro.
-- A camada de service para essa nova assinatura (`calculoService.calcular`) ainda precisa ser concluida para fechar o fluxo completo desta rota.
+Exemplo de resposta de sucesso:
 
-## Padrao de erro usado nos controllers
+```json
+{
+  "distribuidora": "Enel Sao Paulo",
+  "consumoKwh": 50,
+  "mediaDiaria": 1.67,
+  "diasDecorridos": 30,
+  "valorEnergia": 41,
+  "bandeira": {
+    "tipo": "verde",
+    "valor": 0
+  },
+  "icms": 10.25,
+  "cip": 0,
+  "total": 51.25
+}
+```
+
+## Padrao de erro (controllers)
 
 Para erros esperados:
 
@@ -156,11 +194,6 @@ Codigos usados:
   "dev": "nodemon src/server.js"
 }
 ```
-
-## Dados locais de exemplo
-
-- `src/data/distribuidoras.json`
-- `src/data/bandeira.json`
 
 ## Objetivo do repositorio
 
