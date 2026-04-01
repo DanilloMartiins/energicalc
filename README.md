@@ -35,6 +35,12 @@ Em desenvolvimento (MVP funcional da API).
 - Refatoracao dos services para consumir funcoes da camada `data`
 - Atualizacao do README com o estado real da API e historico de evolucao
 
+### 31/03/2026
+- Revisao manual dos principais cenarios da API (sucesso, validacao, 404 e rota desconhecida)
+- Refinamento do `calculoService` para melhorar organizacao interna com funcoes menores
+- Separacao do fluxo de calculo em etapas claras (validacao, consumo, media, energia, bandeira, ICMS, CIP e total)
+- Mantida a mesma arquitetura e o mesmo comportamento externo da API
+
 ## Arquitetura
 
 Padrao usado no projeto:
