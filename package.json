@@ -1,11 +1,12 @@
-﻿{
+{
   "name": "calculadora-fatura-distribuidoras-backend",
   "version": "1.0.0",
   "description": "API backend para simulador de estimativa de fatura de energia eletrica.",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "jest --runInBand"
   },
   "keywords": [
     "node",
@@ -20,6 +21,8 @@
     "express": "^4.21.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2"
   }
 }

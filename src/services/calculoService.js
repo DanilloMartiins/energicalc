@@ -12,6 +12,14 @@ function arredondar(valor) {
   return Number(valor.toFixed(2));
 }
 
+function valorAusente(valor) {
+  return (
+    valor === undefined ||
+    valor === null ||
+    (typeof valor === "string" && valor.trim() === "")
+  );
+}
+
 function normalizarParametros(
   leituraAnterior,
   leituraAtual,
@@ -42,46 +50,57 @@ function validarEntradas({
   distribuidoraId
 }) {
   if (
-    leituraAnterior === undefined ||
-    leituraAtual === undefined ||
-    diasDecorridos === undefined ||
-    distribuidoraId === undefined ||
-    String(distribuidoraId).trim() === ""
+    valorAusente(leituraAnterior) ||
+    valorAusente(leituraAtual) ||
+    valorAusente(diasDecorridos) ||
+    valorAusente(distribuidoraId)
   ) {
     throw criarErro(
       400,
       "Invalid input",
-      "Informe leituraAnterior, leituraAtual, diasDecorridos e distribuidoraId."
+      "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
     );
   }
+
+  const leituraAnteriorNumero = Number(leituraAnterior);
+  const leituraAtualNumero = Number(leituraAtual);
+  const diasDecorridosNumero = Number(diasDecorridos);
+  const distribuidoraIdNormalizado = String(distribuidoraId).trim();
 
   if (
-    !Number.isFinite(leituraAnterior) ||
-    !Number.isFinite(leituraAtual) ||
-    !Number.isFinite(diasDecorridos)
+    !Number.isFinite(leituraAnteriorNumero) ||
+    !Number.isFinite(leituraAtualNumero) ||
+    !Number.isFinite(diasDecorridosNumero)
   ) {
     throw criarErro(
       400,
       "Invalid input",
-      "leituraAnterior, leituraAtual e diasDecorridos devem ser numericos."
+      "leitura anterior, leitura atual e dias decorridos devem ser numericos."
     );
   }
 
-  if (leituraAtual <= leituraAnterior) {
+  if (leituraAtualNumero <= leituraAnteriorNumero) {
     throw criarErro(
       400,
       "Invalid input",
-      "leituraAtual deve ser maior que leituraAnterior."
+      "leitura atual deve ser maior que leitura anterior."
     );
   }
 
-  if (diasDecorridos <= 0) {
+  if (diasDecorridosNumero <= 0) {
     throw criarErro(
       400,
       "Invalid input",
-      "diasDecorridos deve ser maior que zero."
+      "dias decorridos deve ser maior que zero."
     );
   }
+
+  return {
+    leituraAnterior: leituraAnteriorNumero,
+    leituraAtual: leituraAtualNumero,
+    diasDecorridos: diasDecorridosNumero,
+    distribuidoraId: distribuidoraIdNormalizado
+  };
 }
 
 function obterDistribuidora(distribuidoraId) {
@@ -195,17 +214,17 @@ function calcular(leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId
     distribuidoraId
   );
 
-  validarEntradas({
+  const entradasValidadas = validarEntradas({
     leituraAnterior: params.leituraAnterior,
     leituraAtual: params.leituraAtual,
     diasDecorridos: params.diasDecorridos,
     distribuidoraId: params.distribuidoraId
   });
 
-  const distribuidora = obterDistribuidora(params.distribuidoraId);
+  const distribuidora = obterDistribuidora(entradasValidadas.distribuidoraId);
 
-  const consumoKwh = calcularConsumo(params.leituraAnterior, params.leituraAtual);
-  const mediaDiaria = calcularMediaDiaria(consumoKwh, params.diasDecorridos);
+  const consumoKwh = calcularConsumo(entradasValidadas.leituraAnterior, entradasValidadas.leituraAtual);
+  const mediaDiaria = calcularMediaDiaria(consumoKwh, entradasValidadas.diasDecorridos);
   const valorEnergia = calcularValorEnergia(consumoKwh, distribuidora);
   const bandeira = calcularBandeira(consumoKwh);
   const subtotal = calcularSubtotal(valorEnergia, bandeira.valor);
@@ -217,7 +236,7 @@ function calcular(leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId
     distribuidora,
     consumoKwh,
     mediaDiaria,
-    diasDecorridos: params.diasDecorridos,
+    diasDecorridos: entradasValidadas.diasDecorridos,
     valorEnergia,
     bandeira,
     icms,

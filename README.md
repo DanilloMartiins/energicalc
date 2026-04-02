@@ -41,6 +41,14 @@ Em desenvolvimento (MVP funcional da API).
 - Separacao do fluxo de calculo em etapas claras (validacao, consumo, media, energia, bandeira, ICMS, CIP e total)
 - Mantida a mesma arquitetura e o mesmo comportamento externo da API
 
+### 01/04/2026
+- Organizacao da estrutura com suporte a `src/utils` e `src/middlewares`
+- Ajustes de validacao manual no endpoint `GET /api/calculo` (campos obrigatorios, numericos e mensagens mais amigaveis)
+- Inclusao de tratamento centralizado de erros com `AppError` e `errorHandler`
+- Configuracao de testes automatizados com `Jest` e `Supertest`
+- Criacao das suites em `tests/services`, `tests/controllers` e `tests/routes`
+- Execucao da suite com sucesso (`3` suites e `12` testes passando)
+
 ## Arquitetura
 
 Padrao usado no projeto:

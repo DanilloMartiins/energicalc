@@ -1,7 +1,13 @@
 const calculoService = require("../services/calculoService");
+const distribuidorasService = require("../services/distribuidorasService");
+const bandeiraService = require("../services/bandeiraService");
 
-function respostaErro(res, status, error, message) {
-  return res.status(status).json({ error, message });
+function respostaErro400(res, mensagem) {
+  return res.status(400).json({ erro: mensagem });
+}
+
+function valorVazio(valor) {
+  return valor === undefined || valor === null || String(valor).trim() === "";
 }
 
 function calcular(req, res) {
@@ -9,20 +15,20 @@ function calcular(req, res) {
     leituraAnterior,
     leituraAtual,
     diasDecorridos,
-    distribuidoraId
+    distribuidoraId,
+    bandeira
   } = req.query;
 
   if (
-    leituraAnterior === undefined ||
-    leituraAtual === undefined ||
-    diasDecorridos === undefined ||
-    !distribuidoraId
+    valorVazio(leituraAnterior) ||
+    valorVazio(leituraAtual) ||
+    valorVazio(diasDecorridos) ||
+    valorVazio(distribuidoraId) ||
+    valorVazio(bandeira)
   ) {
-    return respostaErro(
+    return respostaErro400(
       res,
-      400,
-      "Invalid input",
-      "Informe leituraAnterior, leituraAtual, diasDecorridos e distribuidoraId."
+      "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
     );
   }
 
@@ -35,29 +41,42 @@ function calcular(req, res) {
     !Number.isFinite(leituraAtualNumero) ||
     !Number.isFinite(diasDecorridosNumero)
   ) {
-    return respostaErro(
+    return respostaErro400(
       res,
-      400,
-      "Invalid input",
-      "leituraAnterior, leituraAtual e diasDecorridos devem ser numericos."
+      "leitura anterior, leitura atual e dias decorridos devem ser numeros validos."
     );
   }
 
-  if (leituraAtualNumero < leituraAnteriorNumero) {
-    return respostaErro(
+  if (
+    leituraAnteriorNumero <= 0 ||
+    leituraAtualNumero <= 0 ||
+    diasDecorridosNumero <= 0
+  ) {
+    return respostaErro400(
       res,
-      400,
-      "Invalid input",
-      "leituraAtual nao pode ser menor que leituraAnterior."
+      "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero."
     );
   }
 
-  if (diasDecorridosNumero <= 0) {
-    return respostaErro(
+  if (leituraAtualNumero <= leituraAnteriorNumero) {
+    return respostaErro400(res, "leitura atual deve ser maior que leitura anterior.");
+  }
+
+  const distribuidoraIdNormalizado = String(distribuidoraId).trim();
+  const distribuidoraEncontrada =
+    distribuidorasService.obterDistribuidoraPorId(distribuidoraIdNormalizado);
+
+  if (!distribuidoraEncontrada) {
+    return respostaErro400(res, "Distribuidora informada nao existe.");
+  }
+
+  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
+  const bandeirasValidas = bandeiraService.listarTiposBandeira();
+
+  if (!bandeirasValidas.includes(bandeiraNormalizada)) {
+    return respostaErro400(
       res,
-      400,
-      "Invalid input",
-      "diasDecorridos deve ser maior que zero."
+      `Bandeira invalida. Valores aceitos: ${bandeirasValidas.join(", ")}.`
     );
   }
 
@@ -66,34 +85,18 @@ function calcular(req, res) {
       leituraAnterior: leituraAnteriorNumero,
       leituraAtual: leituraAtualNumero,
       diasDecorridos: diasDecorridosNumero,
-      distribuidoraId: String(distribuidoraId).trim()
+      distribuidoraId: distribuidoraIdNormalizado
     });
-
-    if (!resultado) {
-      return respostaErro(
-        res,
-        404,
-        "Not found",
-        "Distribuidora nao encontrada."
-      );
-    }
 
     return res.status(200).json(resultado);
   } catch (error) {
-    if (error && (error.status === 400 || error.statusCode === 400)) {
-      return respostaErro(res, 400, "Invalid input", error.message);
+    const status = error && (error.status || error.statusCode);
+
+    if (status === 400 || status === 404) {
+      return respostaErro400(res, error.message);
     }
 
-    if (error && (error.status === 404 || error.statusCode === 404)) {
-      return respostaErro(res, 404, "Not found", error.message);
-    }
-
-    return respostaErro(
-      res,
-      500,
-      "Internal server error",
-      "Erro inesperado ao calcular a fatura."
-    );
+    return res.status(500).json({ erro: "Erro inesperado ao calcular a fatura." });
   }
 }
 
