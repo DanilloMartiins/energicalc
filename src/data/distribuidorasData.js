@@ -1,4 +1,6 @@
-const distribuidoras = require("./distribuidoras.json");
+const { readJson } = require("../utils/readJson");
+
+const distribuidoras = readJson("data/distribuidoras.json");
 
 function getDistribuidoras() {
   return distribuidoras;
@@ -13,7 +15,20 @@ function getDistribuidoraById(id) {
   }) || null;
 }
 
+function getDistribuidoraByNome(nome) {
+  const nomeInformado = String(nome || "").trim().toLowerCase();
+
+  if (!nomeInformado) {
+    return null;
+  }
+
+  return distribuidoras.find((item) => {
+    return String(item.nome || "").trim().toLowerCase() === nomeInformado;
+  }) || null;
+}
+
 module.exports = {
   getDistribuidoras,
-  getDistribuidoraById
+  getDistribuidoraById,
+  getDistribuidoraByNome
 };

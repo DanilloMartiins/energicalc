@@ -14,7 +14,10 @@ describe("Validacao do endpoint /api/calculo", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      erro: "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
+      success: false,
+      error: {
+        message: "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
+      }
     });
   });
 
@@ -31,7 +34,10 @@ describe("Validacao do endpoint /api/calculo", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      erro: "leitura anterior, leitura atual e dias decorridos devem ser numeros validos."
+      success: false,
+      error: {
+        message: "leitura anterior, leitura atual e dias decorridos devem ser numeros validos."
+      }
     });
   });
 
@@ -48,7 +54,10 @@ describe("Validacao do endpoint /api/calculo", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      erro: "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero."
+      success: false,
+      error: {
+        message: "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero."
+      }
     });
   });
 
@@ -65,7 +74,10 @@ describe("Validacao do endpoint /api/calculo", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
-      erro: "Distribuidora informada nao existe."
+      success: false,
+      error: {
+        message: "Distribuidora informada nao existe."
+      }
     });
   });
 
@@ -81,6 +93,94 @@ describe("Validacao do endpoint /api/calculo", () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.erro).toContain("Bandeira invalida.");
+    expect(response.body.success).toBe(false);
+    expect(response.body.error.message).toContain("Bandeira invalida.");
+  });
+});
+
+describe("Validacao do endpoint POST /api/calculo", () => {
+  it("deve retornar 400 quando faltam campos obrigatorios no body", async () => {
+    const response = await request(app)
+      .post("/api/calculo")
+      .send({
+        consumo: 250,
+        distribuidora: "Enel Sao Paulo"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        message: "Informe consumo, nome da distribuidora e bandeira."
+      }
+    });
+  });
+
+  it("deve retornar 400 quando consumo nao e numerico", async () => {
+    const response = await request(app)
+      .post("/api/calculo")
+      .send({
+        consumo: "abc",
+        distribuidora: "Enel Sao Paulo",
+        bandeira: "verde"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        message: "consumo deve ser um numero valido."
+      }
+    });
+  });
+
+  it("deve retornar 400 quando consumo e menor ou igual a zero", async () => {
+    const response = await request(app)
+      .post("/api/calculo")
+      .send({
+        consumo: 0,
+        distribuidora: "Enel Sao Paulo",
+        bandeira: "verde"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        message: "consumo deve ser maior que zero."
+      }
+    });
+  });
+
+  it("deve retornar 400 para distribuidora invalida no body", async () => {
+    const response = await request(app)
+      .post("/api/calculo")
+      .send({
+        consumo: 250,
+        distribuidora: "Celpe",
+        bandeira: "verde"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        message: "Distribuidora informada nao existe."
+      }
+    });
+  });
+
+  it("deve retornar 400 para bandeira invalida no body", async () => {
+    const response = await request(app)
+      .post("/api/calculo")
+      .send({
+        consumo: 250,
+        distribuidora: "Enel Sao Paulo",
+        bandeira: "azul"
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error.message).toContain("Bandeira invalida.");
   });
 });

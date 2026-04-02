@@ -1,0 +1,14 @@
+[
+  {
+    "distribuidora": "Enel Sao Paulo",
+    "tarifaKwh": 0.82
+  },
+  {
+    "distribuidora": "CPFL Paulista",
+    "tarifaKwh": 0.82
+  },
+  {
+    "distribuidora": "Neoenergia Coelba",
+    "tarifaKwh": 0.82
+  }
+]

@@ -1,19 +1,22 @@
 const express = require("express");
 const apiRoutes = require("./routes");
+const logger = require("./middlewares/logger");
 const errorHandler = require("./middlewares/errorHandler");
+const { sendSuccess, sendError } = require("./utils/response");
 
 const app = express();
 
 app.use(express.json());
+app.use(logger);
 
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
+  return sendSuccess(res, 200, { status: "ok" });
 });
 
 app.use("/api", apiRoutes);
 
 app.use((req, res) => {
-  res.status(404).json({ erro: "Rota nao encontrada." });
+  return sendError(res, 404, "Rota nao encontrada.");
 });
 
 app.use(errorHandler);

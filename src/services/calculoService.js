@@ -1,5 +1,7 @@
 const distribuidorasData = require("../data/distribuidorasData");
 const bandeiraData = require("../data/bandeiraData");
+const { hasRequiredFields } = require("../utils/validation");
+const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 
 function criarErro(status, error, message) {
   const erro = new Error(message);
@@ -10,14 +12,6 @@ function criarErro(status, error, message) {
 
 function arredondar(valor) {
   return Number(valor.toFixed(2));
-}
-
-function valorAusente(valor) {
-  return (
-    valor === undefined ||
-    valor === null ||
-    (typeof valor === "string" && valor.trim() === "")
-  );
 }
 
 function normalizarParametros(
@@ -50,10 +44,12 @@ function validarEntradas({
   distribuidoraId
 }) {
   if (
-    valorAusente(leituraAnterior) ||
-    valorAusente(leituraAtual) ||
-    valorAusente(diasDecorridos) ||
-    valorAusente(distribuidoraId)
+    !hasRequiredFields([
+      leituraAnterior,
+      leituraAtual,
+      diasDecorridos,
+      distribuidoraId
+    ])
   ) {
     throw criarErro(
       400,
@@ -62,15 +58,15 @@ function validarEntradas({
     );
   }
 
-  const leituraAnteriorNumero = Number(leituraAnterior);
-  const leituraAtualNumero = Number(leituraAtual);
-  const diasDecorridosNumero = Number(diasDecorridos);
+  const leituraAnteriorNumero = toNumber(leituraAnterior);
+  const leituraAtualNumero = toNumber(leituraAtual);
+  const diasDecorridosNumero = toNumber(diasDecorridos);
   const distribuidoraIdNormalizado = String(distribuidoraId).trim();
 
   if (
-    !Number.isFinite(leituraAnteriorNumero) ||
-    !Number.isFinite(leituraAtualNumero) ||
-    !Number.isFinite(diasDecorridosNumero)
+    !isValidNumber(leituraAnteriorNumero) ||
+    !isValidNumber(leituraAtualNumero) ||
+    !isValidNumber(diasDecorridosNumero)
   ) {
     throw criarErro(
       400,
@@ -87,7 +83,7 @@ function validarEntradas({
     );
   }
 
-  if (diasDecorridosNumero <= 0) {
+  if (!isPositive(diasDecorridosNumero)) {
     throw criarErro(
       400,
       "Invalid input",
@@ -114,9 +110,9 @@ function obterDistribuidora(distribuidoraId) {
 }
 
 function obterTarifaDistribuidora(distribuidora) {
-  const tarifa = Number(distribuidora.tarifa ?? distribuidora.tarifaBaseKwh ?? 0.82);
+  const tarifa = toNumber(distribuidora.tarifa ?? distribuidora.tarifaBaseKwh ?? 0.82);
 
-  if (!Number.isFinite(tarifa) || tarifa < 0) {
+  if (!isValidNumber(tarifa) || tarifa < 0) {
     throw criarErro(
       500,
       "Internal server error",
@@ -130,9 +126,9 @@ function obterTarifaDistribuidora(distribuidora) {
 function obterBandeiraVigente() {
   const bandeiraAtual = bandeiraData.getBandeiraAtual();
   const tipo = bandeiraAtual.vigente;
-  const valor = Number((bandeiraAtual.valoresKwh || {})[tipo]);
+  const valor = toNumber((bandeiraAtual.valoresKwh || {})[tipo]);
 
-  if (!tipo || !Number.isFinite(valor)) {
+  if (!tipo || !isValidNumber(valor)) {
     throw criarErro(
       500,
       "Internal server error",

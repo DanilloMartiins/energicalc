@@ -1,13 +1,23 @@
 const calculoService = require("../services/calculoService");
 const distribuidorasService = require("../services/distribuidorasService");
 const bandeiraService = require("../services/bandeiraService");
+const { hasRequiredFields } = require("../utils/validation");
+const { toNumber, isValidNumber, isPositive } = require("../utils/number");
+const { sendSuccess, sendError } = require("../utils/response");
+const DIAS_PADRAO_POST = 30;
 
 function respostaErro400(res, mensagem) {
-  return res.status(400).json({ erro: mensagem });
+  return sendError(res, 400, mensagem);
 }
 
-function valorVazio(valor) {
-  return valor === undefined || valor === null || String(valor).trim() === "";
+function bandeiraEhValida(bandeira) {
+  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
+  const bandeirasValidas = bandeiraService.listarTiposBandeira();
+
+  return {
+    valida: bandeirasValidas.includes(bandeiraNormalizada),
+    bandeirasValidas
+  };
 }
 
 function calcular(req, res) {
@@ -20,11 +30,13 @@ function calcular(req, res) {
   } = req.query;
 
   if (
-    valorVazio(leituraAnterior) ||
-    valorVazio(leituraAtual) ||
-    valorVazio(diasDecorridos) ||
-    valorVazio(distribuidoraId) ||
-    valorVazio(bandeira)
+    !hasRequiredFields([
+      leituraAnterior,
+      leituraAtual,
+      diasDecorridos,
+      distribuidoraId,
+      bandeira
+    ])
   ) {
     return respostaErro400(
       res,
@@ -32,14 +44,14 @@ function calcular(req, res) {
     );
   }
 
-  const leituraAnteriorNumero = Number(leituraAnterior);
-  const leituraAtualNumero = Number(leituraAtual);
-  const diasDecorridosNumero = Number(diasDecorridos);
+  const leituraAnteriorNumero = toNumber(leituraAnterior);
+  const leituraAtualNumero = toNumber(leituraAtual);
+  const diasDecorridosNumero = toNumber(diasDecorridos);
 
   if (
-    !Number.isFinite(leituraAnteriorNumero) ||
-    !Number.isFinite(leituraAtualNumero) ||
-    !Number.isFinite(diasDecorridosNumero)
+    !isValidNumber(leituraAnteriorNumero) ||
+    !isValidNumber(leituraAtualNumero) ||
+    !isValidNumber(diasDecorridosNumero)
   ) {
     return respostaErro400(
       res,
@@ -48,9 +60,9 @@ function calcular(req, res) {
   }
 
   if (
-    leituraAnteriorNumero <= 0 ||
-    leituraAtualNumero <= 0 ||
-    diasDecorridosNumero <= 0
+    !isPositive(leituraAnteriorNumero) ||
+    !isPositive(leituraAtualNumero) ||
+    !isPositive(diasDecorridosNumero)
   ) {
     return respostaErro400(
       res,
@@ -70,13 +82,12 @@ function calcular(req, res) {
     return respostaErro400(res, "Distribuidora informada nao existe.");
   }
 
-  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
-  const bandeirasValidas = bandeiraService.listarTiposBandeira();
+  const validacaoBandeira = bandeiraEhValida(bandeira);
 
-  if (!bandeirasValidas.includes(bandeiraNormalizada)) {
+  if (!validacaoBandeira.valida) {
     return respostaErro400(
       res,
-      `Bandeira invalida. Valores aceitos: ${bandeirasValidas.join(", ")}.`
+      `Bandeira invalida. Valores aceitos: ${validacaoBandeira.bandeirasValidas.join(", ")}.`
     );
   }
 
@@ -88,7 +99,7 @@ function calcular(req, res) {
       distribuidoraId: distribuidoraIdNormalizado
     });
 
-    return res.status(200).json(resultado);
+    return sendSuccess(res, 200, resultado);
   } catch (error) {
     const status = error && (error.status || error.statusCode);
 
@@ -96,10 +107,69 @@ function calcular(req, res) {
       return respostaErro400(res, error.message);
     }
 
-    return res.status(500).json({ erro: "Erro inesperado ao calcular a fatura." });
+    return sendError(res, 500, "Erro inesperado ao calcular a fatura.");
+  }
+}
+
+function calcularPost(req, res) {
+  const { consumo, distribuidora, bandeira } = req.body || {};
+
+  if (!hasRequiredFields([consumo, distribuidora, bandeira])) {
+    return respostaErro400(res, "Informe consumo, nome da distribuidora e bandeira.");
+  }
+
+  const consumoNumero = toNumber(consumo);
+
+  if (!isValidNumber(consumoNumero)) {
+    return respostaErro400(res, "consumo deve ser um numero valido.");
+  }
+
+  if (!isPositive(consumoNumero)) {
+    return respostaErro400(res, "consumo deve ser maior que zero.");
+  }
+
+  const distribuidoraNormalizada = String(distribuidora).trim();
+  const distribuidoraEncontrada =
+    distribuidorasService.obterDistribuidoraPorNome(distribuidoraNormalizada);
+
+  if (!distribuidoraEncontrada) {
+    return respostaErro400(res, "Distribuidora informada nao existe.");
+  }
+
+  const validacaoBandeira = bandeiraEhValida(bandeira);
+
+  if (!validacaoBandeira.valida) {
+    return respostaErro400(
+      res,
+      `Bandeira invalida. Valores aceitos: ${validacaoBandeira.bandeirasValidas.join(", ")}.`
+    );
+  }
+
+  try {
+    // O service atual trabalha com leituraAnterior, leituraAtual e diasDecorridos.
+    // No POST, como recebemos apenas o consumo, fazemos uma adaptacao simples:
+    // leituraAnterior = 0, leituraAtual = consumo e diasDecorridos = 30.
+    // Futuramente, este mapeamento pode ser evoluido conforme novas regras do negocio.
+    const resultado = calculoService.calcular({
+      leituraAnterior: 0,
+      leituraAtual: consumoNumero,
+      diasDecorridos: DIAS_PADRAO_POST,
+      distribuidoraId: distribuidoraEncontrada.codigo
+    });
+
+    return sendSuccess(res, 200, resultado);
+  } catch (error) {
+    const status = error && (error.status || error.statusCode);
+
+    if (status === 400 || status === 404) {
+      return respostaErro400(res, error.message);
+    }
+
+    return sendError(res, 500, "Erro inesperado ao calcular a fatura.");
   }
 }
 
 module.exports = {
-  calcular
+  calcular,
+  calcularPost
 };
