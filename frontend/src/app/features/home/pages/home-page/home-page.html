@@ -1,0 +1,105 @@
+<section class="home-page">
+  <header class="hero">
+    <p class="eyebrow">EnergiCalc</p>
+    <h2>Calculadora de Fatura de Energia</h2>
+    <p class="subtitle">
+      Um ponto de partida simples para consultar distribuidoras, bandeiras e simular o valor da
+      conta.
+    </p>
+  </header>
+
+  <p class="status loading" *ngIf="carregando">Carregando resumo da aplicacao...</p>
+  <p class="status error" *ngIf="erro">{{ erro }}</p>
+
+  <section class="stats">
+    <article class="card">
+      <span class="label">Status da API</span>
+      <strong>{{ statusApi }}</strong>
+      <span class="hint">Verificado via endpoint /health</span>
+    </article>
+
+    <article class="card accent">
+      <span class="label">Distribuidoras</span>
+      <strong>{{ totalDistribuidoras }}</strong>
+      <span class="hint">Disponiveis na API</span>
+    </article>
+
+    <article class="card">
+      <span class="label">Bandeira atual</span>
+      <strong>{{ bandeiraAtual || '---' }}</strong>
+      <span class="hint">Consulta em tempo real</span>
+    </article>
+
+    <article class="card">
+      <span class="label">Tarifa media</span>
+      <strong>R$ {{ mediaTarifaKwh | number: '1.2-4' }}</strong>
+      <span class="hint">Media de tarifa por kWh</span>
+    </article>
+
+    <article class="card">
+      <span class="label">Carga tributaria</span>
+      <strong>
+        {{ (impostos?.icms || 0) * 100 | number: '1.0-2' }}% ICMS
+      </strong>
+      <span class="hint">
+        PIS {{ (impostos?.pis || 0) * 100 | number: '1.0-2' }}% + COFINS
+        {{ (impostos?.cofins || 0) * 100 | number: '1.0-2' }}%
+      </span>
+    </article>
+
+    <article class="card">
+      <span class="label">Fluxo principal</span>
+      <strong>Simulador</strong>
+      <span class="hint">Calculo da fatura via frontend</span>
+    </article>
+  </section>
+
+  <section class="card values">
+    <div class="section-title">
+      <h3>Valores por bandeira</h3>
+      <p>Baseados no retorno atual da API.</p>
+    </div>
+
+    <div class="values-grid">
+      <div class="value-item" *ngFor="let item of valoresBandeira">
+        <span>{{ formatarBandeira(item.tipo) }}</span>
+        <strong>R$ {{ item.valor | number: '1.2-4' }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="card shortcuts">
+    <div class="section-title">
+      <h3>Atalhos Rapidos</h3>
+      <p>Abra telas com filtros prontos para ganhar velocidade na analise.</p>
+    </div>
+
+    <div class="shortcut-grid">
+      <a
+        class="shortcut-link"
+        [routerLink]="['/distribuidoras']"
+        [queryParams]="{ uf: 'SP', page: 1, limit: 5 }"
+      >
+        Ver distribuidoras de SP
+      </a>
+
+      <a
+        class="shortcut-link"
+        [routerLink]="['/distribuidoras']"
+        [queryParams]="{ uf: 'BA', nome: 'neoenergia', page: 1, limit: 5 }"
+      >
+        Ver Neoenergia na BA
+      </a>
+
+      <a class="shortcut-link" [routerLink]="['/simulador']">
+        Simulador por leituras
+      </a>
+
+      <a class="shortcut-link" [routerLink]="['/simulador']">
+        Simulador completo
+      </a>
+
+      <a class="shortcut-link" [routerLink]="['/bandeiras']">Consultar bandeiras</a>
+    </div>
+  </section>
+</section>

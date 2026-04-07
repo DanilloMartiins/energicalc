@@ -1,0 +1,148 @@
+<section class="simulador-page">
+  <header class="simulador-hero">
+    <p class="eyebrow">EnergiCalc</p>
+    <h2>Simulador de Fatura</h2>
+    <p class="subtitle">
+      Informe as leituras e o periodo para estimar o valor total da conta.
+    </p>
+  </header>
+
+  <p class="status status-loading" *ngIf="carregandoOpcoes">Carregando dados iniciais...</p>
+
+  <p class="status status-error" *ngIf="erroCarregamento">
+    {{ erroCarregamento }}
+    <button type="button" (click)="recarregarDadosIniciais()">Tentar novamente</button>
+  </p>
+
+  <div class="grid">
+    <form class="card form-card" [formGroup]="formulario" (ngSubmit)="simular()">
+      <label for="leituraAnterior">Leitura anterior</label>
+      <input
+        id="leituraAnterior"
+        type="number"
+        step="0.01"
+        min="0"
+        formControlName="leituraAnterior"
+        placeholder="Ex.: 100"
+      />
+      <small class="field-error" *ngIf="campoComErro('leituraAnterior')">
+        Informe a leitura anterior.
+      </small>
+
+      <label for="leituraAtual">Leitura atual</label>
+      <input
+        id="leituraAtual"
+        type="number"
+        step="0.01"
+        min="0"
+        formControlName="leituraAtual"
+        placeholder="Ex.: 150"
+      />
+      <small class="field-error" *ngIf="campoComErro('leituraAtual')">
+        Informe a leitura atual.
+      </small>
+
+      <div class="consumo-preview">
+        <span>Consumo calculado automaticamente</span>
+        <strong>
+          {{ consumoCalculado === null ? '--' : (consumoCalculado | number: "1.0-2") + ' kWh' }}
+        </strong>
+      </div>
+
+      <label for="diasDecorridos">Dias decorridos</label>
+      <input
+        id="diasDecorridos"
+        type="number"
+        step="1"
+        min="1"
+        formControlName="diasDecorridos"
+        placeholder="Ex.: 30"
+      />
+      <small class="field-error" *ngIf="campoComErro('diasDecorridos')">
+        Informe os dias decorridos.
+      </small>
+
+      <label for="distribuidora">Distribuidora</label>
+      <select
+        id="distribuidora"
+        formControlName="distribuidora"
+        [disabled]="carregandoOpcoes || distribuidoras.length === 0"
+      >
+        <option value="" disabled *ngIf="distribuidoras.length === 0">
+          Nenhuma distribuidora disponivel
+        </option>
+        <option *ngFor="let item of distribuidoras" [value]="item.codigo">
+          {{ item.nome }} ({{ item.uf }})
+        </option>
+      </select>
+      <small class="field-error" *ngIf="campoComErro('distribuidora')">
+        Selecione uma distribuidora.
+      </small>
+
+      <div class="bandeira-vigente">
+        <span>Bandeira vigente carregada da API</span>
+        <strong>
+          {{ bandeiraVigente ? formatarBandeira(bandeiraVigente) : 'Aguardando retorno da API' }}
+        </strong>
+      </div>
+      <input type="hidden" formControlName="bandeira" />
+
+      <div class="actions">
+        <button
+          type="submit"
+          [disabled]="enviando || carregandoOpcoes || distribuidoras.length === 0 || !bandeiraVigente"
+        >
+          {{ enviando ? "Simulando..." : "Simular Fatura" }}
+        </button>
+      </div>
+    </form>
+
+    <article class="card result-card" *ngIf="resultado; else estadoInicial">
+      <p class="result-title">Resumo da Simulacao</p>
+      <p class="result-main">R$ {{ resultado.total | number: "1.2-2" }}</p>
+
+      <dl>
+        <div>
+          <dt>Distribuidora</dt>
+          <dd>{{ resultado.distribuidora }}</dd>
+        </div>
+        <div>
+          <dt>Consumo</dt>
+          <dd>{{ resultado.consumoKwh | number: "1.0-2" }} kWh</dd>
+        </div>
+        <div>
+          <dt>Media diaria</dt>
+          <dd>{{ resultado.mediaDiaria | number: "1.0-2" }} kWh</dd>
+        </div>
+        <div>
+          <dt>Valor energia</dt>
+          <dd>R$ {{ resultado.valorEnergia | number: "1.2-2" }}</dd>
+        </div>
+        <div>
+          <dt>Bandeira</dt>
+          <dd>
+            {{ formatarBandeira(resultado.bandeira.tipo) }}
+            (R$ {{ resultado.bandeira.valor | number: "1.2-2" }})
+          </dd>
+        </div>
+        <div>
+          <dt>ICMS</dt>
+          <dd>R$ {{ resultado.icms | number: "1.2-2" }}</dd>
+        </div>
+        <div>
+          <dt>CIP</dt>
+          <dd>R$ {{ resultado.cip | number: "1.2-2" }}</dd>
+        </div>
+      </dl>
+    </article>
+
+    <ng-template #estadoInicial>
+      <article class="card result-card empty">
+        <p class="result-title">Resumo da Simulacao</p>
+        <p>O resultado aparecera aqui apos o envio do formulario.</p>
+      </article>
+    </ng-template>
+  </div>
+
+  <p class="status status-error" *ngIf="erroSimulacao">{{ erroSimulacao }}</p>
+</section>

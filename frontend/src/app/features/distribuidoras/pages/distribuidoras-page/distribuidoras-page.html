@@ -1,0 +1,88 @@
+<section class="distribuidoras-page">
+  <header class="hero">
+    <p class="eyebrow">EnergiCalc</p>
+    <h2>Distribuidoras</h2>
+    <p class="subtitle">
+      Consulte as distribuidoras cadastradas e refine a busca por UF ou nome.
+    </p>
+  </header>
+
+  <p class="status loading" *ngIf="carregando">Carregando distribuidoras...</p>
+  <p class="status error" *ngIf="erro">{{ erro }}</p>
+
+  <section class="panel filters">
+    <form [formGroup]="filtrosForm" (ngSubmit)="aplicarFiltros()">
+      <label for="uf">UF</label>
+      <input id="uf" formControlName="uf" placeholder="Ex.: SP" maxlength="2" />
+
+      <label for="nome">Nome ou codigo</label>
+      <input id="nome" formControlName="nome" placeholder="Ex.: Neoenergia ou ENEL_SP" />
+
+      <div class="actions">
+        <button type="submit">Filtrar</button>
+        <button type="button" class="secondary" (click)="limparFiltros()">Limpar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel results">
+    <div class="results-header">
+      <div>
+        <p class="results-title">Resultado</p>
+        <p class="results-summary">
+          {{ totalItems }} distribuidora(s) encontrada(s)
+        </p>
+      </div>
+
+      <div class="pagination-meta">
+        <span>P&aacute;gina {{ totalPages === 0 ? 0 : page }} de {{ totalPages }}</span>
+        <span>Itens por p&aacute;gina: {{ limit }}</span>
+      </div>
+    </div>
+
+    <ng-container *ngIf="distribuidoras.length > 0; else emptyState">
+      <div class="table">
+        <div class="table-head">
+          <span>Codigo</span>
+          <span>Nome</span>
+          <span>UF</span>
+        </div>
+
+        <div class="table-row" *ngFor="let item of distribuidoras; trackBy: trackByCodigo">
+          <span>{{ item.codigo }}</span>
+          <span>{{ item.nome }}</span>
+          <span>{{ item.uf }}</span>
+        </div>
+      </div>
+
+      <div class="pager">
+        <button type="button" (click)="paginaAnterior()" [disabled]="page <= 1 || carregando">
+          Anterior
+        </button>
+
+        <button
+          type="button"
+          class="page-chip"
+          *ngFor="let pagina of paginas"
+          [class.active]="pagina === page"
+          (click)="irParaPagina(pagina)"
+          [disabled]="carregando"
+        >
+          {{ pagina }}
+        </button>
+
+        <button
+          type="button"
+          (click)="proximaPagina()"
+          [disabled]="page >= totalPages || carregando"
+        >
+          Proxima
+        </button>
+      </div>
+    </ng-container>
+
+    <ng-template #emptyState>
+      <p class="empty">Nenhuma distribuidora encontrada com os filtros informados.</p>
+    </ng-template>
+  </section>
+</section>

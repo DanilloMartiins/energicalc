@@ -4,6 +4,10 @@ function obterBandeiraAtual() {
   return bandeiraData.getBandeiraAtual();
 }
 
+async function sincronizarBandeiraAtual(force = false) {
+  return bandeiraData.syncBandeiraAtual(force);
+}
+
 function listarTiposBandeira() {
   const bandeira = bandeiraData.getBandeiraAtual();
   const valores = bandeira.valoresKwh || {};
@@ -22,6 +26,7 @@ function obterAdicionalPorKwh(tipoBandeira) {
 
 module.exports = {
   obterBandeiraAtual,
+  sincronizarBandeiraAtual,
   listarTiposBandeira,
   obterAdicionalPorKwh
 };

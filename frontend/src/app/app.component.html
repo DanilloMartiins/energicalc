@@ -1,0 +1,14 @@
+<header class="app-header">
+  <h1>EnergiCalc</h1>
+
+  <nav>
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+    <a routerLink="/simulador" routerLinkActive="active">Simulador</a>
+    <a routerLink="/distribuidoras" routerLinkActive="active">Distribuidoras</a>
+    <a routerLink="/bandeiras" routerLinkActive="active">Bandeiras</a>
+  </nav>
+</header>
+
+<main class="app-content">
+  <router-outlet />
+</main>

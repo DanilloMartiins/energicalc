@@ -1,0 +1,39 @@
+<section class="bandeiras-page">
+  <header class="hero">
+    <p class="eyebrow">EnergiCalc</p>
+    <h2>Bandeiras Tarifarias</h2>
+    <p class="subtitle">
+      Consulte a bandeira atual e os valores adicionais por kWh retornados pela API.
+    </p>
+  </header>
+
+  <p class="status loading" *ngIf="carregando">Carregando informacoes da bandeira...</p>
+  <p class="status error" *ngIf="erro">
+    {{ erro }}
+    <button type="button" (click)="recarregar()">Tentar novamente</button>
+  </p>
+
+  <section class="panel current">
+    <div>
+      <span class="label">Bandeira vigente</span>
+      <strong>{{ bandeiraAtual ? formatarBandeira(bandeiraAtual) : '---' }}</strong>
+    </div>
+    <p class="hint">
+      O simulador utiliza estes valores para compor o valor final da fatura.
+    </p>
+  </section>
+
+  <section class="panel values">
+    <div class="section-title">
+      <h3>Valores por kWh</h3>
+      <p>Atualizado com base na resposta da API.</p>
+    </div>
+
+    <div class="grid">
+      <article class="value-card" *ngFor="let item of valores">
+        <span>{{ formatarBandeira(item.tipo) }}</span>
+        <strong>R$ {{ item.valor | number: '1.2-4' }}</strong>
+      </article>
+    </div>
+  </section>
+</section>

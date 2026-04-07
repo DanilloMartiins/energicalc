@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  font-family: Arial, sans-serif;
+}
+
+.app-header {
+  padding: 1rem;
+  border-bottom: 1px solid #d9d9d9;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+a {
+  text-decoration: none;
+  color: #0f3b7a;
+  font-weight: 600;
+}
+
+a.active {
+  text-decoration: underline;
+}
+
+.app-content {
+  padding: 1rem;
+}

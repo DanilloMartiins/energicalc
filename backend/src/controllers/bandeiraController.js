@@ -1,8 +1,9 @@
 const bandeiraService = require("../services/bandeiraService");
 const { sendSuccess } = require("../utils/response");
 
-function obterBandeiraAtual(req, res, next) {
+async function obterBandeiraAtual(req, res, next) {
   try {
+    await bandeiraService.sincronizarBandeiraAtual();
     const bandeira = bandeiraService.obterBandeiraAtual();
     return sendSuccess(res, 200, bandeira);
   } catch (error) {
