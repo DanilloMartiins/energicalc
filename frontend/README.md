@@ -1,59 +1,57 @@
-# Frontend
+# EnergiCalc Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.6.
+Frontend do projeto **EnergiCalc**, construído com **Angular standalone** e proxy para o backend local.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- Node.js 22 LTS
+- npm
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Instalação
 
 ```bash
-ng generate component component-name
+cd frontend
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Rodando em desenvolvimento
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+Aplicação: `http://localhost:4301`
 
-To build the project run:
+## Backend e proxy
+
+O frontend usa `proxy.conf.json` para encaminhar:
+
+- `/api/*` -> `http://localhost:3000`
+- `/health` -> `http://localhost:3000`
+
+Por isso, o backend precisa estar rodando em paralelo na porta `3000`.
+
+## Rotas principais
+
+- `/` Home
+- `/simulador` Simulador de fatura
+- `/distribuidoras` Lista de distribuidoras
+- `/bandeiras` Bandeira vigente
+
+## Simulador (fluxo atual)
+
+- Consumo calculado automaticamente por `leituraAtual - leituraAnterior`
+- Distribuidora carregada da API
+- Bandeira vigente carregada automaticamente da API
+- Envio para `GET /api/calculo`
+
+## Build
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Observações
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Se aparecer erro de carregamento no simulador, valide primeiro se o backend está ativo em `http://localhost:3000/health`.
+- Em ambiente Windows, se `npm` não for reconhecido no terminal, valide o PATH do Node.js.
