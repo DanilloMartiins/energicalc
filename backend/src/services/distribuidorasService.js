@@ -1,4 +1,5 @@
 const distribuidorasData = require("../data/distribuidorasData");
+const { resolverSigAgentePorCodigo } = require("../data/distribuidoraAneelMap");
 
 function aplicarFiltroUf(distribuidoras, uf) {
   const ufNormalizada = String(uf || "").trim().toUpperCase();
@@ -65,8 +66,19 @@ function obterDistribuidoraPorNome(nome) {
   return distribuidorasData.getDistribuidoraByNome(nome);
 }
 
+function obterSigAgenteAneel(distribuidoraIdOuCodigo) {
+  const distribuidora = obterDistribuidoraPorId(distribuidoraIdOuCodigo);
+
+  if (!distribuidora) {
+    return null;
+  }
+
+  return resolverSigAgentePorCodigo(distribuidora.codigo);
+}
+
 module.exports = {
   listarDistribuidoras,
   obterDistribuidoraPorId,
-  obterDistribuidoraPorNome
+  obterDistribuidoraPorNome,
+  obterSigAgenteAneel
 };
