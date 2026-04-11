@@ -2,6 +2,16 @@ const request = require("supertest");
 const app = require("../../src/app");
 
 describe("Validacao do endpoint /api/calculo", () => {
+  const fetchOriginal = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = jest.fn().mockRejectedValue(new Error("Sem rede para teste"));
+  });
+
+  afterAll(() => {
+    global.fetch = fetchOriginal;
+  });
+
   it("deve retornar 400 quando faltam parametros obrigatorios", async () => {
     const response = await request(app)
       .get("/api/calculo")

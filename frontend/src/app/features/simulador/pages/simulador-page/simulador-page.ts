@@ -1,12 +1,33 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, finalize, forkJoin, of } from 'rxjs';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { catchError, finalize, forkJoin, of, Subscription, timeout } from 'rxjs';
 import { CalculoGetPayload, ResultadoCalculo } from '../../../../core/models/calculo.model';
 import { BandeiraAtual } from '../../../../core/models/bandeira.model';
 import { Distribuidora } from '../../../../core/models/distribuidora.model';
 import { ConsultaApiService } from '../../../../core/services/consulta-api.service';
 import { SimuladorApiService } from '../../../../core/services/simulador-api.service';
+
+function validarLeituras(formulario: AbstractControl): ValidationErrors | null {
+  const leituraAnterior = Number(formulario.get('leituraAnterior')?.value);
+  const leituraAtual = Number(formulario.get('leituraAtual')?.value);
+
+  if (!Number.isFinite(leituraAnterior) || !Number.isFinite(leituraAtual)) {
+    return null;
+  }
+
+  if (leituraAtual <= leituraAnterior) {
+    return { leiturasInvalidas: true };
+  }
+
+  return null;
+}
 
 @Component({
   selector: 'app-simulador-page',
@@ -19,28 +40,41 @@ export class SimuladorPage implements OnInit {
   private readonly simuladorApiService = inject(SimuladorApiService);
   private readonly consultaApiService = inject(ConsultaApiService);
 
-  readonly formulario = this.formBuilder.group({
-    leituraAnterior: [null as number | null, [Validators.required, Validators.min(0.01)]],
-    leituraAtual: [null as number | null, [Validators.required, Validators.min(0.01)]],
-    diasDecorridos: [30 as number | null, [Validators.required, Validators.min(0.01)]],
-    distribuidora: ['', Validators.required],
-    bandeira: ['', Validators.required],
-  });
+  readonly formulario = this.formBuilder.group(
+    {
+      leituraAnterior: [null as number | null, [Validators.required, Validators.min(0.01)]],
+      leituraAtual: [null as number | null, [Validators.required, Validators.min(0.01)]],
+      diasDecorridos: [30 as number | null, [Validators.required, Validators.min(0.01)]],
+      distribuidora: ['', Validators.required],
+      bandeira: ['', Validators.required],
+    },
+    {
+      validators: [validarLeituras],
+    },
+  );
 
   carregandoOpcoes = false;
   enviando = false;
   erroCarregamento = '';
   erroSimulacao = '';
+  avisoSimulacao = '';
 
   distribuidoras: Distribuidora[] = [];
   bandeiraVigente = '';
   resultado: ResultadoCalculo | null = null;
+  ultimoPayloadSimulado: CalculoGetPayload | null = null;
+  requisicaoSimulacao: Subscription | null = null;
+  simulacaoWatchdogId: number | null = null;
 
   ngOnInit(): void {
     this.carregarDadosIniciais();
   }
 
   simular(): void {
+    if (this.enviando) {
+      return;
+    }
+
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
       return;
@@ -48,22 +82,57 @@ export class SimuladorPage implements OnInit {
 
     const distribuidoraCodigo = String(this.formulario.controls.distribuidora.value).trim();
     const bandeira = String(this.formulario.controls.bandeira.value).trim();
+    const payload = this.montarPayloadGet(distribuidoraCodigo, bandeira);
+
+    if (this.payloadEhIgualAoUltimo(payload)) {
+      this.avisoSimulacao = 'Altere algum campo para simular novamente.';
+      return;
+    }
 
     this.erroSimulacao = '';
-    this.resultado = null;
+    this.avisoSimulacao = '';
     this.enviando = true;
 
-    this.simuladorApiService
-      .calcularFaturaGet(this.montarPayloadGet(distribuidoraCodigo, bandeira))
-      .pipe(finalize(() => (this.enviando = false)))
+    this.simulacaoWatchdogId = window.setTimeout(() => {
+      if (!this.enviando) {
+        return;
+      }
+
+      this.requisicaoSimulacao?.unsubscribe();
+      this.enviando = false;
+      this.erroSimulacao =
+        'A simulacao nao retornou a tempo. Verifique backend/proxy e tente novamente.';
+    }, 16000);
+
+    this.requisicaoSimulacao = this.simuladorApiService
+      .calcularFaturaGet(payload)
+      .pipe(
+        timeout(15000),
+        finalize(() => {
+          this.enviando = false;
+          this.requisicaoSimulacao = null;
+
+          if (this.simulacaoWatchdogId !== null) {
+            window.clearTimeout(this.simulacaoWatchdogId);
+            this.simulacaoWatchdogId = null;
+          }
+        }),
+      )
       .subscribe({
         next: (resultado) => {
           this.resultado = resultado;
+          this.ultimoPayloadSimulado = { ...payload };
         },
         error: (error) => {
+          if ((error as { name?: string })?.name === 'TimeoutError') {
+            this.erroSimulacao =
+              'A simulacao demorou mais do que o esperado. Confira se o backend esta ativo e tente novamente.';
+            return;
+          }
+
           this.erroSimulacao = this.extrairMensagemErro(
             error,
-            'Nao foi possivel calcular a fatura no momento.',
+            'Nao conseguimos calcular sua fatura agora. Tente novamente em instantes.',
           );
         },
       });
@@ -71,6 +140,22 @@ export class SimuladorPage implements OnInit {
 
   recarregarDadosIniciais(): void {
     this.carregarDadosIniciais();
+  }
+
+  get podeSimular(): boolean {
+    if (this.enviando || this.carregandoOpcoes || this.distribuidoras.length === 0 || !this.bandeiraVigente) {
+      return false;
+    }
+
+    if (this.formulario.invalid) {
+      return false;
+    }
+
+    const distribuidoraCodigo = String(this.formulario.controls.distribuidora.value).trim();
+    const bandeira = String(this.formulario.controls.bandeira.value).trim();
+    const payloadAtual = this.montarPayloadGet(distribuidoraCodigo, bandeira);
+
+    return !this.payloadEhIgualAoUltimo(payloadAtual);
   }
 
   get consumoCalculado(): number | null {
@@ -88,11 +173,77 @@ export class SimuladorPage implements OnInit {
     return leituraAtual - leituraAnterior;
   }
 
-  campoComErro(
-    nomeCampo: 'leituraAnterior' | 'leituraAtual' | 'diasDecorridos' | 'distribuidora',
-  ): boolean {
-    const campo = this.formulario.controls[nomeCampo];
-    return campo.invalid && (campo.touched || campo.dirty);
+  mensagemErroLeituraAnterior(): string {
+    const campo = this.formulario.controls.leituraAnterior;
+
+    if (!(campo.touched || campo.dirty) || !campo.errors) {
+      return '';
+    }
+
+    if (campo.errors['required']) {
+      return 'Vamos comecar pela leitura anterior para calcular seu consumo.';
+    }
+
+    if (campo.errors['min']) {
+      return 'A leitura anterior precisa ser maior que zero.';
+    }
+
+    return 'Confira esse valor e tente novamente.';
+  }
+
+  mensagemErroLeituraAtual(): string {
+    const campo = this.formulario.controls.leituraAtual;
+    const tocado = campo.touched || campo.dirty;
+
+    if (this.formulario.hasError('leiturasInvalidas') && tocado) {
+      return 'A leitura atual precisa ser maior que a leitura anterior.';
+    }
+
+    if (!tocado || !campo.errors) {
+      return '';
+    }
+
+    if (campo.errors['required']) {
+      return 'Agora informe a leitura atual para fecharmos o calculo.';
+    }
+
+    if (campo.errors['min']) {
+      return 'A leitura atual precisa ser maior que zero.';
+    }
+
+    return 'Confira esse valor e tente novamente.';
+  }
+
+  mensagemErroDiasDecorridos(): string {
+    const campo = this.formulario.controls.diasDecorridos;
+
+    if (!(campo.touched || campo.dirty) || !campo.errors) {
+      return '';
+    }
+
+    if (campo.errors['required']) {
+      return 'Informe quantos dias se passaram entre as leituras.';
+    }
+
+    if (campo.errors['min']) {
+      return 'Os dias decorridos precisam ser maiores que zero.';
+    }
+
+    return 'Confira esse valor e tente novamente.';
+  }
+
+  mensagemErroDistribuidora(): string {
+    const campo = this.formulario.controls.distribuidora;
+
+    if (!(campo.touched || campo.dirty) || !campo.errors) {
+      return '';
+    }
+
+    if (campo.errors['required']) {
+      return 'Escolha uma distribuidora para a simulacao.';
+    }
+
+    return 'Escolha uma distribuidora valida para continuar.';
   }
 
   formatarBandeira(tipoBandeira: string): string {
@@ -114,7 +265,7 @@ export class SimuladorPage implements OnInit {
         catchError((error) => {
           erroDistribuidoras = this.extrairMensagemErro(
             error,
-            'Nao foi possivel carregar as distribuidoras.',
+            'Nao conseguimos carregar as distribuidoras agora.',
           );
           return of([] as Distribuidora[]);
         }),
@@ -123,7 +274,7 @@ export class SimuladorPage implements OnInit {
         catchError((error) => {
           erroBandeira = this.extrairMensagemErro(
             error,
-            'Nao foi possivel carregar a bandeira vigente.',
+            'Nao conseguimos carregar a bandeira vigente no momento.',
           );
           return of(null as BandeiraAtual | null);
         }),
@@ -145,12 +296,12 @@ export class SimuladorPage implements OnInit {
 
           if (!distribuidoras.length && !this.bandeiraVigente) {
             this.erroCarregamento =
-              'Nao foi possivel conectar com o backend. Verifique se ele esta rodando na porta 3000.';
+              'Nao conseguimos conectar com o backend. Verifique se ele esta rodando na porta 3000 e tente novamente.';
           } else if (!distribuidoras.length) {
-            this.erroCarregamento =
-              erroDistribuidoras || 'Nao foi possivel carregar as distribuidoras.';
+            this.erroCarregamento = erroDistribuidoras || 'As distribuidoras nao carregaram agora.';
           } else if (!this.bandeiraVigente) {
-            this.erroCarregamento = erroBandeira || 'Nao foi possivel carregar a bandeira vigente.';
+            this.erroCarregamento =
+              erroBandeira || 'A bandeira vigente nao carregou agora. Tente novamente.';
           }
         },
       });
@@ -162,8 +313,22 @@ export class SimuladorPage implements OnInit {
       leituraAtual: Number(this.formulario.controls.leituraAtual.value),
       diasDecorridos: Number(this.formulario.controls.diasDecorridos.value),
       distribuidoraId: distribuidoraCodigo,
-      bandeira,
+      bandeira: bandeira.toLowerCase(),
     };
+  }
+
+  private payloadEhIgualAoUltimo(payloadAtual: CalculoGetPayload): boolean {
+    if (!this.ultimoPayloadSimulado) {
+      return false;
+    }
+
+    return (
+      this.ultimoPayloadSimulado.leituraAnterior === payloadAtual.leituraAnterior &&
+      this.ultimoPayloadSimulado.leituraAtual === payloadAtual.leituraAtual &&
+      this.ultimoPayloadSimulado.diasDecorridos === payloadAtual.diasDecorridos &&
+      this.ultimoPayloadSimulado.distribuidoraId === payloadAtual.distribuidoraId &&
+      this.ultimoPayloadSimulado.bandeira === payloadAtual.bandeira
+    );
   }
 
   private extrairMensagemErro(error: unknown, mensagemPadrao: string): string {

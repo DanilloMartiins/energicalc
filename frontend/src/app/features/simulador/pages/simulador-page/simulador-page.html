@@ -7,7 +7,9 @@
     </p>
   </header>
 
-  <p class="status status-loading" *ngIf="carregandoOpcoes">Carregando dados iniciais...</p>
+  <p class="status status-loading" *ngIf="carregandoOpcoes">
+    Estamos preparando os dados iniciais da simulacao...
+  </p>
 
   <p class="status status-error" *ngIf="erroCarregamento">
     {{ erroCarregamento }}
@@ -25,8 +27,8 @@
         formControlName="leituraAnterior"
         placeholder="Ex.: 100"
       />
-      <small class="field-error" *ngIf="campoComErro('leituraAnterior')">
-        Informe a leitura anterior.
+      <small class="field-error" *ngIf="mensagemErroLeituraAnterior()">
+        {{ mensagemErroLeituraAnterior() }}
       </small>
 
       <label for="leituraAtual">Leitura atual</label>
@@ -38,8 +40,8 @@
         formControlName="leituraAtual"
         placeholder="Ex.: 150"
       />
-      <small class="field-error" *ngIf="campoComErro('leituraAtual')">
-        Informe a leitura atual.
+      <small class="field-error" *ngIf="mensagemErroLeituraAtual()">
+        {{ mensagemErroLeituraAtual() }}
       </small>
 
       <div class="consumo-preview">
@@ -58,8 +60,8 @@
         formControlName="diasDecorridos"
         placeholder="Ex.: 30"
       />
-      <small class="field-error" *ngIf="campoComErro('diasDecorridos')">
-        Informe os dias decorridos.
+      <small class="field-error" *ngIf="mensagemErroDiasDecorridos()">
+        {{ mensagemErroDiasDecorridos() }}
       </small>
 
       <label for="distribuidora">Distribuidora</label>
@@ -75,8 +77,8 @@
           {{ item.nome }} ({{ item.uf }})
         </option>
       </select>
-      <small class="field-error" *ngIf="campoComErro('distribuidora')">
-        Selecione uma distribuidora.
+      <small class="field-error" *ngIf="mensagemErroDistribuidora()">
+        {{ mensagemErroDistribuidora() }}
       </small>
 
       <div class="bandeira-vigente">
@@ -88,10 +90,7 @@
       <input type="hidden" formControlName="bandeira" />
 
       <div class="actions">
-        <button
-          type="submit"
-          [disabled]="enviando || carregandoOpcoes || distribuidoras.length === 0 || !bandeiraVigente"
-        >
+        <button type="submit" [disabled]="!podeSimular">
           {{ enviando ? "Simulando..." : "Simular Fatura" }}
         </button>
       </div>
@@ -139,10 +138,11 @@
     <ng-template #estadoInicial>
       <article class="card result-card empty">
         <p class="result-title">Resumo da Simulacao</p>
-        <p>O resultado aparecera aqui apos o envio do formulario.</p>
+        <p>Assim que voce preencher e enviar, a estimativa aparece aqui.</p>
       </article>
     </ng-template>
   </div>
 
+  <p class="status status-loading" *ngIf="avisoSimulacao">{{ avisoSimulacao }}</p>
   <p class="status status-error" *ngIf="erroSimulacao">{{ erroSimulacao }}</p>
 </section>

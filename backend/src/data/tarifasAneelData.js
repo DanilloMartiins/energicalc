@@ -8,9 +8,12 @@ const FALLBACK_TARIFAS = readJson("data/tarifas.json");
 const URL_TARIFAS_ANEEL =
   "https://dadosabertos.aneel.gov.br/dataset/5a583f3e-1646-4f67-bf0f-69db4203e89e/resource/fcf2906c-7c32-4b9b-a637-054e7a5234f4/download/tarifas-homologadas-distribuidoras-energia-eletrica.csv";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+const FETCH_TIMEOUT_MS_PADRAO = 5000;
+const COOLDOWN_FALHA_MS = 5 * 60 * 1000;
 
 let tarifasCachePorSig = construirFallbackCache();
 let ultimaSincronizacao = 0;
+let ultimaFalhaPorTimeout = 0;
 let sincronizacaoEmAndamento = null;
 
 function dividirLinhas(csv) {
@@ -219,7 +222,30 @@ function construirFallbackCache() {
 }
 
 async function baixarConteudoCsv(url) {
-  const response = await fetch(url);
+  const timeoutMsConfigurado = Number(process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS);
+  const timeoutMs =
+    Number.isFinite(timeoutMsConfigurado) && timeoutMsConfigurado > 0
+      ? timeoutMsConfigurado
+      : FETCH_TIMEOUT_MS_PADRAO;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  let response;
+  try {
+    response = await fetch(url, { signal: controller.signal });
+  } catch (error) {
+    if (error && error.name === "AbortError") {
+      throw new Error(
+        `Timeout ao baixar CSV de tarifas da ANEEL apos ${timeoutMs}ms. URL: ${url}`
+      );
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     throw new Error(`Falha ao baixar CSV de tarifas da ANEEL. URL: ${url}`);
@@ -237,6 +263,11 @@ function toListaTarifas(cachePorSig) {
       fonte: item.fonte
     };
   });
+}
+
+function erroEhTimeout(error) {
+  const mensagem = String((error && error.message) || "");
+  return mensagem.toLowerCase().includes("timeout");
 }
 
 async function sincronizarComAneel() {
@@ -262,12 +293,21 @@ async function sincronizarComAneel() {
 }
 
 async function syncTarifasAneel(force = false) {
+  const agora = Date.now();
   const cacheValido =
     !force &&
     ultimaSincronizacao > 0 &&
-    Date.now() - ultimaSincronizacao < CACHE_TTL_MS;
+    agora - ultimaSincronizacao < CACHE_TTL_MS;
+  const emCooldownFalha =
+    !force &&
+    ultimaFalhaPorTimeout > 0 &&
+    agora - ultimaFalhaPorTimeout < COOLDOWN_FALHA_MS;
 
   if (cacheValido) {
+    return toListaTarifas(tarifasCachePorSig);
+  }
+
+  if (emCooldownFalha) {
     return toListaTarifas(tarifasCachePorSig);
   }
 
@@ -277,8 +317,14 @@ async function syncTarifasAneel(force = false) {
 
   sincronizacaoEmAndamento = (async () => {
     try {
-      return await sincronizarComAneel();
+      const resultado = await sincronizarComAneel();
+      ultimaFalhaPorTimeout = 0;
+      return resultado;
     } catch (error) {
+      if (erroEhTimeout(error)) {
+        ultimaFalhaPorTimeout = Date.now();
+      }
+
       return toListaTarifas(tarifasCachePorSig);
     } finally {
       sincronizacaoEmAndamento = null;

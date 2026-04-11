@@ -2,6 +2,16 @@ const request = require("supertest");
 const app = require("../../src/app");
 
 describe("Rotas da API", () => {
+  const fetchOriginal = global.fetch;
+
+  beforeEach(() => {
+    global.fetch = jest.fn().mockRejectedValue(new Error("Sem rede para teste"));
+  });
+
+  afterAll(() => {
+    global.fetch = fetchOriginal;
+  });
+
   it("GET /health deve retornar status ok", async () => {
     const response = await request(app).get("/health");
 
@@ -30,6 +40,30 @@ describe("Rotas da API", () => {
         distribuidora: "Enel Sao Paulo",
         consumoKwh: 50,
         total: 51.25
+      }
+    });
+  });
+
+  it("GET /api/calculo deve aplicar a bandeira enviada", async () => {
+    const response = await request(app)
+      .get("/api/calculo")
+      .query({
+        leituraAnterior: 100,
+        leituraAtual: 150,
+        diasDecorridos: 30,
+        distribuidoraId: 1,
+        bandeira: "amarela"
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      success: true,
+      data: {
+        bandeira: {
+          tipo: "amarela",
+          valor: 0.94
+        },
+        total: 52.42
       }
     });
   });
@@ -220,6 +254,79 @@ describe("Rotas da API", () => {
         message: "consumo deve ser maior que zero."
       }
     });
+  });
+
+  it("GET /api/tarifas deve refletir tarifas dinamicas da ANEEL", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        [
+          "SigAgente;DatInicioVigencia;DatFimVigencia;DscBaseTarifaria;DscSubGrupo;DscModalidadeTarifaria;VlrTUSD;VlrTE",
+          "ENEL SP;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;900,00;300,00",
+          "CPFL PAULISTA;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;600,00;300,00",
+          "COELBA;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;500,00;200,00"
+        ].join("\n")
+    });
+
+    const response = await request(app).get("/api/tarifas");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      success: true,
+      data: [
+        {
+          distribuidora: "Enel Sao Paulo",
+          tarifaKwh: 1.2
+        },
+        {
+          distribuidora: "CPFL Paulista",
+          tarifaKwh: 0.9
+        },
+        {
+          distribuidora: "Neoenergia Coelba",
+          tarifaKwh: 0.7
+        }
+      ]
+    });
+  });
+
+  it("GET /api/calculo deve aplicar tarifa dinamica por distribuidora", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        [
+          "SigAgente;DatInicioVigencia;DatFimVigencia;DscBaseTarifaria;DscSubGrupo;DscModalidadeTarifaria;VlrTUSD;VlrTE",
+          "ENEL SP;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;900,00;300,00",
+          "CPFL PAULISTA;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;600,00;300,00"
+        ].join("\n")
+    });
+
+    const enel = await request(app)
+      .get("/api/calculo")
+      .query({
+        leituraAnterior: 100,
+        leituraAtual: 150,
+        diasDecorridos: 30,
+        distribuidoraId: "ENEL_SP",
+        bandeira: "verde"
+      });
+
+    const cpfl = await request(app)
+      .get("/api/calculo")
+      .query({
+        leituraAnterior: 100,
+        leituraAtual: 150,
+        diasDecorridos: 30,
+        distribuidoraId: "CPFL_PAULISTA",
+        bandeira: "verde"
+      });
+
+    expect(enel.status).toBe(200);
+    expect(cpfl.status).toBe(200);
+    expect(enel.body.data.valorEnergia).toBe(60);
+    expect(enel.body.data.total).toBe(75);
+    expect(cpfl.body.data.valorEnergia).toBe(45);
+    expect(cpfl.body.data.total).toBe(56.25);
   });
 
   it("rota nao encontrada deve retornar 404", async () => {

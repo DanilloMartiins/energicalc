@@ -1,5 +1,6 @@
 const distribuidorasData = require("../data/distribuidorasData");
 const bandeiraData = require("../data/bandeiraData");
+const tarifasService = require("./tarifasService");
 const { hasRequiredFields } = require("../utils/validation");
 const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 
@@ -18,14 +19,16 @@ function normalizarParametros(
   leituraAnterior,
   leituraAtual,
   diasDecorridos,
-  distribuidoraId
+  distribuidoraId,
+  bandeira
 ) {
   if (typeof leituraAnterior === "object" && leituraAnterior !== null) {
     return {
       leituraAnterior: leituraAnterior.leituraAnterior,
       leituraAtual: leituraAnterior.leituraAtual,
       diasDecorridos: leituraAnterior.diasDecorridos,
-      distribuidoraId: leituraAnterior.distribuidoraId
+      distribuidoraId: leituraAnterior.distribuidoraId,
+      bandeira: leituraAnterior.bandeira
     };
   }
 
@@ -33,7 +36,8 @@ function normalizarParametros(
     leituraAnterior,
     leituraAtual,
     diasDecorridos,
-    distribuidoraId
+    distribuidoraId,
+    bandeira
   };
 }
 
@@ -110,7 +114,13 @@ function obterDistribuidora(distribuidoraId) {
 }
 
 function obterTarifaDistribuidora(distribuidora) {
-  const tarifa = toNumber(distribuidora.tarifa ?? distribuidora.tarifaBaseKwh ?? 0.82);
+  const tarifaVigente = tarifasService.obterTarifaVigentePorDistribuidora(
+    distribuidora.codigo
+  );
+  const tarifaDinamica = tarifaVigente && tarifaVigente.tarifaKwh;
+  const tarifa = toNumber(
+    tarifaDinamica ?? distribuidora.tarifa ?? distribuidora.tarifaBaseKwh ?? 0.82
+  );
 
   if (!isValidNumber(tarifa) || tarifa < 0) {
     throw criarErro(
@@ -123,12 +133,22 @@ function obterTarifaDistribuidora(distribuidora) {
   return tarifa;
 }
 
-function obterBandeiraVigente() {
+function obterBandeiraSelecionada(tipoInformado) {
   const bandeiraAtual = bandeiraData.getBandeiraAtual();
-  const tipo = bandeiraAtual.vigente;
-  const valor = toNumber((bandeiraAtual.valoresKwh || {})[tipo]);
+  const valoresKwh = bandeiraAtual.valoresKwh || {};
+  const tipoNormalizado = String(tipoInformado || "").trim().toLowerCase();
+  const tipoSelecionado = tipoNormalizado || bandeiraAtual.vigente;
 
-  if (!tipo || !isValidNumber(valor)) {
+  if (
+    tipoNormalizado &&
+    !Object.prototype.hasOwnProperty.call(valoresKwh, tipoNormalizado)
+  ) {
+    throw criarErro(400, "Invalid input", "Bandeira informada nao existe.");
+  }
+
+  const valor = toNumber(valoresKwh[tipoSelecionado]);
+
+  if (!tipoSelecionado || !isValidNumber(valor)) {
     throw criarErro(
       500,
       "Internal server error",
@@ -136,7 +156,7 @@ function obterBandeiraVigente() {
     );
   }
 
-  return { tipo, valor };
+  return { tipo: tipoSelecionado, valor };
 }
 
 function calcularConsumo(leituraAnterior, leituraAtual) {
@@ -152,8 +172,8 @@ function calcularValorEnergia(consumoKwh, distribuidora) {
   return arredondar(consumoKwh * tarifa);
 }
 
-function calcularBandeira(consumoKwh) {
-  const bandeira = obterBandeiraVigente();
+function calcularBandeira(consumoKwh, tipoBandeira) {
+  const bandeira = obterBandeiraSelecionada(tipoBandeira);
   const valor = arredondar(consumoKwh * bandeira.valor);
 
   return {
@@ -202,12 +222,19 @@ function montarResposta({
   };
 }
 
-function calcular(leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId) {
+function calcular(
+  leituraAnterior,
+  leituraAtual,
+  diasDecorridos,
+  distribuidoraId,
+  bandeira
+) {
   const params = normalizarParametros(
     leituraAnterior,
     leituraAtual,
     diasDecorridos,
-    distribuidoraId
+    distribuidoraId,
+    bandeira
   );
 
   const entradasValidadas = validarEntradas({
@@ -222,8 +249,8 @@ function calcular(leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId
   const consumoKwh = calcularConsumo(entradasValidadas.leituraAnterior, entradasValidadas.leituraAtual);
   const mediaDiaria = calcularMediaDiaria(consumoKwh, entradasValidadas.diasDecorridos);
   const valorEnergia = calcularValorEnergia(consumoKwh, distribuidora);
-  const bandeira = calcularBandeira(consumoKwh);
-  const subtotal = calcularSubtotal(valorEnergia, bandeira.valor);
+  const bandeiraCalculada = calcularBandeira(consumoKwh, params.bandeira);
+  const subtotal = calcularSubtotal(valorEnergia, bandeiraCalculada.valor);
   const icms = calcularIcms(subtotal);
   const cip = calcularCip(distribuidora);
   const total = calcularTotal(subtotal, icms, cip);
@@ -234,7 +261,7 @@ function calcular(leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId
     mediaDiaria,
     diasDecorridos: entradasValidadas.diasDecorridos,
     valorEnergia,
-    bandeira,
+    bandeira: bandeiraCalculada,
     icms,
     cip,
     total

@@ -1,6 +1,7 @@
 const calculoService = require("../services/calculoService");
 const distribuidorasService = require("../services/distribuidorasService");
 const bandeiraService = require("../services/bandeiraService");
+const tarifasService = require("../services/tarifasService");
 const { hasRequiredFields } = require("../utils/validation");
 const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 const { sendSuccess, sendError } = require("../utils/response");
@@ -20,7 +21,7 @@ function bandeiraEhValida(bandeira) {
   };
 }
 
-function calcular(req, res) {
+async function calcular(req, res) {
   const {
     leituraAnterior,
     leituraAtual,
@@ -75,6 +76,7 @@ function calcular(req, res) {
   }
 
   const distribuidoraIdNormalizado = String(distribuidoraId).trim();
+  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
   const distribuidoraEncontrada =
     distribuidorasService.obterDistribuidoraPorId(distribuidoraIdNormalizado);
 
@@ -92,11 +94,14 @@ function calcular(req, res) {
   }
 
   try {
+    await tarifasService.sincronizarTarifasAneel();
+
     const resultado = calculoService.calcular({
       leituraAnterior: leituraAnteriorNumero,
       leituraAtual: leituraAtualNumero,
       diasDecorridos: diasDecorridosNumero,
-      distribuidoraId: distribuidoraIdNormalizado
+      distribuidoraId: distribuidoraIdNormalizado,
+      bandeira: bandeiraNormalizada
     });
 
     return sendSuccess(res, 200, resultado);
@@ -111,7 +116,7 @@ function calcular(req, res) {
   }
 }
 
-function calcularPost(req, res) {
+async function calcularPost(req, res) {
   const { consumo, distribuidora, bandeira } = req.body || {};
 
   if (!hasRequiredFields([consumo, distribuidora, bandeira])) {
@@ -119,6 +124,7 @@ function calcularPost(req, res) {
   }
 
   const consumoNumero = toNumber(consumo);
+  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
 
   if (!isValidNumber(consumoNumero)) {
     return respostaErro400(res, "consumo deve ser um numero valido.");
@@ -146,6 +152,8 @@ function calcularPost(req, res) {
   }
 
   try {
+    await tarifasService.sincronizarTarifasAneel();
+
     // O service atual trabalha com leituraAnterior, leituraAtual e diasDecorridos.
     // No POST, como recebemos apenas o consumo, fazemos uma adaptacao simples:
     // leituraAnterior = 0, leituraAtual = consumo e diasDecorridos = 30.
@@ -154,7 +162,8 @@ function calcularPost(req, res) {
       leituraAnterior: 0,
       leituraAtual: consumoNumero,
       diasDecorridos: DIAS_PADRAO_POST,
-      distribuidoraId: distribuidoraEncontrada.codigo
+      distribuidoraId: distribuidoraEncontrada.codigo,
+      bandeira: bandeiraNormalizada
     });
 
     return sendSuccess(res, 200, resultado);

@@ -1,13 +1,13 @@
-# EnergiCalc Frontend
+﻿# EnergiCalc Frontend
 
-Frontend do projeto **EnergiCalc**, construído com **Angular standalone** e proxy para o backend local.
+Frontend do projeto **EnergiCalc**, construido com **Angular standalone** e proxy para o backend local.
 
 ## Requisitos
 
 - Node.js 22 LTS
 - npm
 
-## Instalação
+## Instalacao
 
 ```bash
 cd frontend
@@ -20,7 +20,22 @@ npm install
 npm start
 ```
 
-Aplicação: `http://localhost:4301`
+Aplicacao: `http://localhost:4301`
+
+## Subindo frontend + backend juntos (comando unico)
+
+Na raiz do repositorio, rode:
+
+```bash
+npm run dev
+```
+
+Esse comando inicia:
+
+- backend em `http://localhost:3000`
+- frontend em `http://localhost:4301`
+
+Para encerrar os dois processos, use `Ctrl + C`.
 
 ## Backend e proxy
 
@@ -51,7 +66,7 @@ Por isso, o backend precisa estar rodando em paralelo na porta `3000`.
 npm run build
 ```
 
-## Observações
+## Observacoes
 
-- Se aparecer erro de carregamento no simulador, valide primeiro se o backend está ativo em `http://localhost:3000/health`.
-- Em ambiente Windows, se `npm` não for reconhecido no terminal, valide o PATH do Node.js.
+- Se aparecer erro de carregamento no simulador, valide primeiro se o backend esta ativo em `http://localhost:3000/health`.
+- Em ambiente Windows, se `npm` nao for reconhecido no terminal, valide o PATH do Node.js.

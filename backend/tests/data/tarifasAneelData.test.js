@@ -19,9 +19,11 @@ function criarDeferred() {
 
 describe("tarifasAneelData", () => {
   const fetchOriginal = global.fetch;
+  const timeoutOriginal = process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS;
 
   afterEach(() => {
     global.fetch = fetchOriginal;
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = timeoutOriginal;
     jest.resetModules();
     jest.clearAllMocks();
   });
@@ -138,5 +140,59 @@ describe("tarifasAneelData", () => {
     deferred.resolve(csv);
     await Promise.all([sync1, sync2]);
     expect(tarifasAneelData.getTarifaBySigAgente("COELBA").fonte).toBe("aneel");
+  });
+
+  it("deve aplicar timeout e retornar fallback quando a ANEEL travar", async () => {
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = "20";
+
+    global.fetch = jest.fn((url, options = {}) => {
+      return new Promise((resolve, reject) => {
+        if (!options.signal) {
+          return;
+        }
+
+        options.signal.addEventListener("abort", () => {
+          const erroAbort = new Error("aborted");
+          erroAbort.name = "AbortError";
+          reject(erroAbort);
+        });
+      });
+    });
+
+    const tarifasAneelData = require("../../src/data/tarifasAneelData");
+    const lista = await tarifasAneelData.syncTarifasAneel(true);
+    const enel = tarifasAneelData.getTarifaBySigAgente("ENEL SP");
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(lista.length).toBeGreaterThan(0);
+    expect(enel).toMatchObject({
+      sigAgente: "ENEL SP",
+      tarifaKwh: 0.82,
+      fonte: "fallback_local"
+    });
+  });
+
+  it("deve respeitar cooldown apos timeout e evitar nova chamada imediata", async () => {
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = "20";
+    global.fetch = jest.fn((url, options = {}) => {
+      return new Promise((resolve, reject) => {
+        if (!options.signal) {
+          return;
+        }
+
+        options.signal.addEventListener("abort", () => {
+          const erroAbort = new Error("aborted");
+          erroAbort.name = "AbortError";
+          reject(erroAbort);
+        });
+      });
+    });
+
+    const tarifasAneelData = require("../../src/data/tarifasAneelData");
+
+    await tarifasAneelData.syncTarifasAneel(false);
+    await tarifasAneelData.syncTarifasAneel(false);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });
