@@ -68,7 +68,6 @@
       <select
         id="distribuidora"
         formControlName="distribuidora"
-        [disabled]="carregandoOpcoes || distribuidoras.length === 0"
       >
         <option value="" disabled *ngIf="distribuidoras.length === 0">
           Nenhuma distribuidora disponivel

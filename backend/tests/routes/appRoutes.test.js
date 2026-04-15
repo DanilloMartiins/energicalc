@@ -1,11 +1,35 @@
 const request = require("supertest");
 const app = require("../../src/app");
+const tarifasService = require("../../src/services/tarifasService");
+
+function criarFetchLentoComAbort() {
+  return jest.fn((url, options = {}) => {
+    return new Promise((resolve, reject) => {
+      if (!options.signal) {
+        return;
+      }
+
+      options.signal.addEventListener("abort", () => {
+        const erroAbort = new Error("aborted");
+        erroAbort.name = "AbortError";
+        reject(erroAbort);
+      });
+    });
+  });
+}
 
 describe("Rotas da API", () => {
   const fetchOriginal = global.fetch;
+  const timeoutTarifasOriginal = process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS;
+  const timeoutBandeiraOriginal = process.env.ANEEL_BANDEIRA_FETCH_TIMEOUT_MS;
 
   beforeEach(() => {
     global.fetch = jest.fn().mockRejectedValue(new Error("Sem rede para teste"));
+  });
+
+  afterEach(() => {
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = timeoutTarifasOriginal;
+    process.env.ANEEL_BANDEIRA_FETCH_TIMEOUT_MS = timeoutBandeiraOriginal;
   });
 
   afterAll(() => {
@@ -39,7 +63,7 @@ describe("Rotas da API", () => {
       data: {
         distribuidora: "Enel Sao Paulo",
         consumoKwh: 50,
-        total: 51.25
+        total: 59.38
       }
     });
   });
@@ -63,7 +87,7 @@ describe("Rotas da API", () => {
           tipo: "amarela",
           valor: 0.94
         },
-        total: 52.42
+        total: 60.55
       }
     });
   });
@@ -117,6 +141,20 @@ describe("Rotas da API", () => {
         }
       ]
     });
+  });
+
+  it("GET /api/distribuidoras nao deve bloquear quando ANEEL estiver lenta", async () => {
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = "20";
+    global.fetch = criarFetchLentoComAbort();
+    const inicio = Date.now();
+
+    const response = await request(app).get("/api/distribuidoras");
+    const duracaoMs = Date.now() - inicio;
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(duracaoMs).toBeLessThan(2000);
   });
 
   it("GET /api/distribuidoras com filtros combinados deve aplicar uf e nome", async () => {
@@ -190,15 +228,15 @@ describe("Rotas da API", () => {
       data: [
         {
           distribuidora: "Enel Sao Paulo",
-          tarifaKwh: 0.82
+          tarifaKwh: 0.95
         },
         {
           distribuidora: "CPFL Paulista",
-          tarifaKwh: 0.82
+          tarifaKwh: 0.9
         },
         {
           distribuidora: "Neoenergia Coelba",
-          tarifaKwh: 0.82
+          tarifaKwh: 0.85
         }
       ]
     });
@@ -218,6 +256,21 @@ describe("Rotas da API", () => {
     });
   });
 
+  it("GET /api/bandeira nao deve bloquear quando ANEEL estiver lenta", async () => {
+    process.env.ANEEL_BANDEIRA_FETCH_TIMEOUT_MS = "20";
+    global.fetch = criarFetchLentoComAbort();
+    const inicio = Date.now();
+
+    const response = await request(app).get("/api/bandeira");
+    const duracaoMs = Date.now() - inicio;
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toHaveProperty("vigente");
+    expect(response.body.data).toHaveProperty("valoresKwh");
+    expect(duracaoMs).toBeLessThan(2000);
+  });
+
   it("POST /api/calculo valido deve retornar 200", async () => {
     const response = await request(app)
       .post("/api/calculo")
@@ -233,7 +286,7 @@ describe("Rotas da API", () => {
       data: {
         distribuidora: "Enel Sao Paulo",
         consumoKwh: 250,
-        total: 256.25
+        total: 296.88
       }
     });
   });
@@ -268,6 +321,7 @@ describe("Rotas da API", () => {
         ].join("\n")
     });
 
+    await tarifasService.sincronizarTarifasAneel(true);
     const response = await request(app).get("/api/tarifas");
 
     expect(response.status).toBe(200);
@@ -301,6 +355,7 @@ describe("Rotas da API", () => {
         ].join("\n")
     });
 
+    await tarifasService.sincronizarTarifasAneel(true);
     const enel = await request(app)
       .get("/api/calculo")
       .query({
@@ -327,6 +382,28 @@ describe("Rotas da API", () => {
     expect(enel.body.data.total).toBe(75);
     expect(cpfl.body.data.valorEnergia).toBe(45);
     expect(cpfl.body.data.total).toBe(56.25);
+  });
+
+  it("GET /api/calculo nao deve bloquear quando sincronizacao ANEEL estiver lenta", async () => {
+    process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = "20";
+    global.fetch = criarFetchLentoComAbort();
+    const inicio = Date.now();
+
+    const response = await request(app)
+      .get("/api/calculo")
+      .query({
+        leituraAnterior: 100,
+        leituraAtual: 150,
+        diasDecorridos: 30,
+        distribuidoraId: "CPFL_PAULISTA",
+        bandeira: "verde"
+      });
+
+    const duracaoMs = Date.now() - inicio;
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(duracaoMs).toBeLessThan(2000);
   });
 
   it("rota nao encontrada deve retornar 404", async () => {

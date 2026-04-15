@@ -1,7 +1,6 @@
 const calculoService = require("../services/calculoService");
 const distribuidorasService = require("../services/distribuidorasService");
 const bandeiraService = require("../services/bandeiraService");
-const tarifasService = require("../services/tarifasService");
 const { hasRequiredFields } = require("../utils/validation");
 const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 const { sendSuccess, sendError } = require("../utils/response");
@@ -94,8 +93,6 @@ async function calcular(req, res) {
   }
 
   try {
-    await tarifasService.sincronizarTarifasAneel();
-
     const resultado = calculoService.calcular({
       leituraAnterior: leituraAnteriorNumero,
       leituraAtual: leituraAtualNumero,
@@ -152,8 +149,6 @@ async function calcularPost(req, res) {
   }
 
   try {
-    await tarifasService.sincronizarTarifasAneel();
-
     // O service atual trabalha com leituraAnterior, leituraAtual e diasDecorridos.
     // No POST, como recebemos apenas o consumo, fazemos uma adaptacao simples:
     // leituraAnterior = 0, leituraAtual = consumo e diasDecorridos = 30.

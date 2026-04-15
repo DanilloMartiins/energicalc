@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const { readJson } = require("../utils/readJson");
 const {
   normalizarChave,
@@ -5,11 +7,19 @@ const {
 } = require("./distribuidoraAneelMap");
 
 const FALLBACK_TARIFAS = readJson("data/tarifas.json");
+const TARIFAS_FALLBACK_FILE_PATH = process.env.TARIFAS_FALLBACK_FILE_PATH
+  ? path.resolve(process.env.TARIFAS_FALLBACK_FILE_PATH)
+  : path.resolve(__dirname, "tarifas.json");
 const URL_TARIFAS_ANEEL =
   "https://dadosabertos.aneel.gov.br/dataset/5a583f3e-1646-4f67-bf0f-69db4203e89e/resource/fcf2906c-7c32-4b9b-a637-054e7a5234f4/download/tarifas-homologadas-distribuidoras-energia-eletrica.csv";
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const FETCH_TIMEOUT_MS_PADRAO = 5000;
 const COOLDOWN_FALHA_MS = 5 * 60 * 1000;
+const AUTO_PERSISTIR_FALLBACK_LOCAL =
+  process.env.ANEEL_ATUALIZA_FALLBACK_LOCAL === "true" ||
+  (process.env.NODE_ENV !== "test" && process.env.ANEEL_ATUALIZA_FALLBACK_LOCAL !== "false");
+
+let tarifasFallbackLocal = carregarTarifasFallbackLocal();
 
 let tarifasCachePorSig = construirFallbackCache();
 let ultimaSincronizacao = 0;
@@ -199,10 +209,82 @@ function extrairTarifasMaisRecentes(registros) {
   return porAgente;
 }
 
+function normalizarListaFallback(tarifas) {
+  if (!Array.isArray(tarifas)) {
+    return [];
+  }
+
+  return tarifas
+    .map((item) => {
+      const distribuidora = String(item && item.distribuidora ? item.distribuidora : "").trim();
+      const tarifaKwh = Number(item && item.tarifaKwh);
+
+      if (!distribuidora || !Number.isFinite(tarifaKwh)) {
+        return null;
+      }
+
+      return {
+        distribuidora,
+        tarifaKwh: arredondarCincoCasas(tarifaKwh)
+      };
+    })
+    .filter(Boolean);
+}
+
+function carregarTarifasFallbackLocal() {
+  const fallbackNormalizado = normalizarListaFallback(FALLBACK_TARIFAS);
+
+  try {
+    const conteudo = fs.readFileSync(TARIFAS_FALLBACK_FILE_PATH, "utf-8");
+    const arquivo = JSON.parse(conteudo);
+    const normalizadoArquivo = normalizarListaFallback(arquivo);
+    return normalizadoArquivo.length > 0 ? normalizadoArquivo : fallbackNormalizado;
+  } catch (error) {
+    return fallbackNormalizado;
+  }
+}
+
+function persistirTarifasFallbackLocal(tarifasFallbackAtualizadas) {
+  if (!AUTO_PERSISTIR_FALLBACK_LOCAL) {
+    return;
+  }
+
+  const payload = `${JSON.stringify(tarifasFallbackAtualizadas, null, 2)}\n`;
+  const tempPath = `${TARIFAS_FALLBACK_FILE_PATH}.tmp`;
+
+  fs.writeFileSync(tempPath, payload, "utf-8");
+  fs.renameSync(tempPath, TARIFAS_FALLBACK_FILE_PATH);
+}
+
+function atualizarTarifasFallbackLocalComAneel(tarifasExtraidasPorSig) {
+  const fallbackAtualizado = tarifasFallbackLocal.map((item) => {
+    const sigAgente = resolverSigAgentePorNomeDistribuidora(item.distribuidora);
+    const chave = sigAgente ? normalizarChave(sigAgente) : "";
+    const tarifaAneel = chave ? tarifasExtraidasPorSig[chave] : null;
+
+    if (tarifaAneel && Number.isFinite(tarifaAneel.tarifaKwh)) {
+      return {
+        distribuidora: item.distribuidora,
+        tarifaKwh: arredondarCincoCasas(tarifaAneel.tarifaKwh)
+      };
+    }
+
+    return item;
+  });
+
+  tarifasFallbackLocal = fallbackAtualizado;
+
+  try {
+    persistirTarifasFallbackLocal(fallbackAtualizado);
+  } catch (error) {
+    // Falha de escrita local nao deve derrubar a sincronizacao da ANEEL.
+  }
+}
+
 function construirFallbackCache() {
   const porAgente = {};
 
-  FALLBACK_TARIFAS.forEach((item) => {
+  tarifasFallbackLocal.forEach((item) => {
     const sigAgente = resolverSigAgentePorNomeDistribuidora(item.distribuidora);
     const tarifaKwh = Number(item.tarifaKwh);
 
@@ -283,6 +365,8 @@ async function sincronizarComAneel() {
     throw new Error("Nao foi possivel extrair tarifas validas da base da ANEEL.");
   }
 
+  atualizarTarifasFallbackLocalComAneel(tarifasExtraidas);
+
   tarifasCachePorSig = {
     ...construirFallbackCache(),
     ...tarifasExtraidas
@@ -344,10 +428,18 @@ function getTarifasCache() {
   return toListaTarifas(tarifasCachePorSig);
 }
 
+function getStatusSincronizacao() {
+  return {
+    ultimaSincronizacao,
+    ultimaFalhaPorTimeout
+  };
+}
+
 module.exports = {
   syncTarifasAneel,
   getTarifaBySigAgente,
   getTarifasCache,
+  getStatusSincronizacao,
   __internals: {
     parseCsv,
     parseDataFlexivel,
@@ -355,6 +447,8 @@ module.exports = {
     extrairTarifasVigentes,
     extrairTarifasMaisRecentes,
     ehRegraB1Convencional,
-    construirFallbackCache
+    construirFallbackCache,
+    normalizarListaFallback,
+    carregarTarifasFallbackLocal
   }
 };

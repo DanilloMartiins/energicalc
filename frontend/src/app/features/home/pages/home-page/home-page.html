@@ -14,13 +14,13 @@
   <section class="stats">
     <article class="card">
       <span class="label">Status da API</span>
-      <strong>{{ statusApi }}</strong>
+      <strong>{{ statusApi || '---' }}</strong>
       <span class="hint">Verificado via endpoint /health</span>
     </article>
 
     <article class="card accent">
       <span class="label">Distribuidoras</span>
-      <strong>{{ totalDistribuidoras }}</strong>
+      <strong>{{ totalDistribuidoras === null ? '---' : totalDistribuidoras }}</strong>
       <span class="hint">Disponiveis na API</span>
     </article>
 
@@ -32,19 +32,25 @@
 
     <article class="card">
       <span class="label">Tarifa media</span>
-      <strong>R$ {{ mediaTarifaKwh | number: '1.2-4' }}</strong>
+      <strong>{{ mediaTarifaKwh === null ? '---' : 'R$ ' + (mediaTarifaKwh | number: '1.2-4') }}</strong>
       <span class="hint">Media de tarifa por kWh</span>
     </article>
 
     <article class="card">
       <span class="label">Carga tributaria</span>
-      <strong>
-        {{ (impostos?.icms || 0) * 100 | number: '1.0-2' }}% ICMS
+      <strong *ngIf="impostos; else cargaIndisponivel">
+        {{ impostos.icms * 100 | number: '1.0-2' }}% ICMS
       </strong>
-      <span class="hint">
-        PIS {{ (impostos?.pis || 0) * 100 | number: '1.0-2' }}% + COFINS
-        {{ (impostos?.cofins || 0) * 100 | number: '1.0-2' }}%
+      <ng-template #cargaIndisponivel>
+        <strong>---</strong>
+      </ng-template>
+      <span class="hint" *ngIf="impostos; else cargaHintIndisponivel">
+        PIS {{ impostos.pis * 100 | number: '1.0-2' }}% + COFINS
+        {{ impostos.cofins * 100 | number: '1.0-2' }}%
       </span>
+      <ng-template #cargaHintIndisponivel>
+        <span class="hint">Dados tributarios indisponiveis no momento.</span>
+      </ng-template>
     </article>
 
     <article class="card">
@@ -65,6 +71,7 @@
         <span>{{ formatarBandeira(item.tipo) }}</span>
         <strong>R$ {{ item.valor | number: '1.2-4' }}</strong>
       </div>
+      <p *ngIf="valoresBandeira.length === 0">Sem dados de bandeira no momento.</p>
     </div>
   </section>
 

@@ -76,9 +76,21 @@ function obterSigAgenteAneel(distribuidoraIdOuCodigo) {
   return resolverSigAgentePorCodigo(distribuidora.codigo);
 }
 
+async function sincronizarDistribuidorasAneel(force = false) {
+  return distribuidorasData.syncDistribuidorasAneel(force);
+}
+
+function sincronizarDistribuidorasAneelEmBackground(force = false) {
+  distribuidorasData.syncDistribuidorasAneel(force).catch(() => {
+    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+  });
+}
+
 module.exports = {
   listarDistribuidoras,
   obterDistribuidoraPorId,
   obterDistribuidoraPorNome,
-  obterSigAgenteAneel
+  obterSigAgenteAneel,
+  sincronizarDistribuidorasAneel,
+  sincronizarDistribuidorasAneelEmBackground
 };

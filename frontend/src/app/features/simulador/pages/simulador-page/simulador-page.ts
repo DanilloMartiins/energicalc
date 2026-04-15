@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -35,7 +35,7 @@ function validarLeituras(formulario: AbstractControl): ValidationErrors | null {
   templateUrl: './simulador-page.html',
   styleUrl: './simulador-page.scss',
 })
-export class SimuladorPage implements OnInit {
+export class SimuladorPage implements OnInit, OnDestroy {
   private readonly formBuilder = inject(FormBuilder);
   private readonly simuladorApiService = inject(SimuladorApiService);
   private readonly consultaApiService = inject(ConsultaApiService);
@@ -67,7 +67,17 @@ export class SimuladorPage implements OnInit {
   simulacaoWatchdogId: number | null = null;
 
   ngOnInit(): void {
+    this.sincronizarEstadoCampos();
     this.carregarDadosIniciais();
+  }
+
+  ngOnDestroy(): void {
+    this.requisicaoSimulacao?.unsubscribe();
+
+    if (this.simulacaoWatchdogId !== null) {
+      window.clearTimeout(this.simulacaoWatchdogId);
+      this.simulacaoWatchdogId = null;
+    }
   }
 
   simular(): void {
@@ -92,6 +102,7 @@ export class SimuladorPage implements OnInit {
     this.erroSimulacao = '';
     this.avisoSimulacao = '';
     this.enviando = true;
+    this.sincronizarEstadoCampos();
 
     this.simulacaoWatchdogId = window.setTimeout(() => {
       if (!this.enviando) {
@@ -100,6 +111,7 @@ export class SimuladorPage implements OnInit {
 
       this.requisicaoSimulacao?.unsubscribe();
       this.enviando = false;
+      this.sincronizarEstadoCampos();
       this.erroSimulacao =
         'A simulacao nao retornou a tempo. Verifique backend/proxy e tente novamente.';
     }, 16000);
@@ -110,6 +122,7 @@ export class SimuladorPage implements OnInit {
         timeout(15000),
         finalize(() => {
           this.enviando = false;
+          this.sincronizarEstadoCampos();
           this.requisicaoSimulacao = null;
 
           if (this.simulacaoWatchdogId !== null) {
@@ -255,6 +268,7 @@ export class SimuladorPage implements OnInit {
 
   private carregarDadosIniciais(): void {
     this.carregandoOpcoes = true;
+    this.sincronizarEstadoCampos();
     this.erroCarregamento = '';
     this.bandeiraVigente = '';
     let erroDistribuidoras = '';
@@ -280,7 +294,12 @@ export class SimuladorPage implements OnInit {
         }),
       ),
     })
-      .pipe(finalize(() => (this.carregandoOpcoes = false)))
+      .pipe(
+        finalize(() => {
+          this.carregandoOpcoes = false;
+          this.sincronizarEstadoCampos();
+        }),
+      )
       .subscribe({
         next: ({ distribuidoras, bandeiraAtual }) => {
           this.distribuidoras = distribuidoras;
@@ -303,8 +322,32 @@ export class SimuladorPage implements OnInit {
             this.erroCarregamento =
               erroBandeira || 'A bandeira vigente nao carregou agora. Tente novamente.';
           }
+
+          this.sincronizarEstadoCampos();
         },
       });
+  }
+
+  private sincronizarEstadoCampos(): void {
+    const leituraEditavel = !this.enviando && !this.carregandoOpcoes;
+    const distribuidoraEditavel =
+      !this.enviando && !this.carregandoOpcoes && this.distribuidoras.length > 0;
+
+    this.definirEstadoControle(this.formulario.controls.leituraAnterior, leituraEditavel);
+    this.definirEstadoControle(this.formulario.controls.leituraAtual, leituraEditavel);
+    this.definirEstadoControle(this.formulario.controls.diasDecorridos, leituraEditavel);
+    this.definirEstadoControle(this.formulario.controls.distribuidora, distribuidoraEditavel);
+  }
+
+  private definirEstadoControle(controle: AbstractControl, habilitado: boolean): void {
+    if (habilitado && controle.disabled) {
+      controle.enable({ emitEvent: false });
+      return;
+    }
+
+    if (!habilitado && controle.enabled) {
+      controle.disable({ emitEvent: false });
+    }
   }
 
   private montarPayloadGet(distribuidoraCodigo: string, bandeira: string): CalculoGetPayload {
@@ -332,6 +375,10 @@ export class SimuladorPage implements OnInit {
   }
 
   private extrairMensagemErro(error: unknown, mensagemPadrao: string): string {
+    if ((error as { name?: string })?.name === 'TimeoutError') {
+      return 'A requisicao demorou demais para responder. Confira backend/proxy e tente novamente.';
+    }
+
     const erro = error as {
       error?: {
         error?: {

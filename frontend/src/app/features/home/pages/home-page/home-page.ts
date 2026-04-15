@@ -13,14 +13,15 @@ import { ConsultaApiService } from '../../../../core/services/consulta-api.servi
 })
 export class HomePage implements OnInit {
   private readonly consultaApiService = inject(ConsultaApiService);
+  private carregamentoId = 0;
 
   carregando = false;
   erro = '';
-  statusApi = '---';
-  totalDistribuidoras = 0;
+  statusApi: string | null = null;
+  totalDistribuidoras: number | null = null;
   bandeiraAtual = '';
   valoresBandeira: { tipo: string; valor: number }[] = [];
-  mediaTarifaKwh = 0;
+  mediaTarifaKwh: number | null = null;
   impostos: Impostos | null = null;
 
   ngOnInit(): void {
@@ -35,6 +36,7 @@ export class HomePage implements OnInit {
   }
 
   private carregarResumo(): void {
+    const carregamentoAtual = ++this.carregamentoId;
     this.carregando = true;
     this.erro = '';
 
@@ -45,9 +47,19 @@ export class HomePage implements OnInit {
       tarifas: this.consultaApiService.listarTarifas(),
       impostos: this.consultaApiService.obterImpostos(),
     })
-      .pipe(finalize(() => (this.carregando = false)))
+      .pipe(
+        finalize(() => {
+          if (carregamentoAtual === this.carregamentoId) {
+            this.carregando = false;
+          }
+        }),
+      )
       .subscribe({
         next: ({ health, distribuidoras, bandeira, tarifas, impostos }) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
           this.statusApi = health.status === 'ok' ? 'Online' : 'Indisponivel';
           this.totalDistribuidoras = distribuidoras.length;
           this.impostos = impostos;
@@ -60,6 +72,10 @@ export class HomePage implements OnInit {
           }));
         },
         error: (error) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
           this.erro = this.extrairMensagemErro(
             error,
             'Nao foi possivel carregar os dados iniciais da home.',
@@ -78,6 +94,10 @@ export class HomePage implements OnInit {
   }
 
   private extrairMensagemErro(error: unknown, mensagemPadrao: string): string {
+    if ((error as { name?: string })?.name === 'TimeoutError') {
+      return 'A API demorou para responder. Verifique backend/proxy e tente novamente.';
+    }
+
     const erro = error as {
       error?: {
         error?: {

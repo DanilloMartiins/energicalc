@@ -1,0 +1,105 @@
+{
+  "fonte": [
+    "https://www.gov.br/aneel/pt-br/assuntos/noticias/2025/calendario-de-acionamento-de-bandeiras-tarifarias-para-2025-ja-esta-disponivel",
+    "https://www.gov.br/aneel/pt-br/assuntos/noticias/2026/bandeira-tarifaria-aneel-divulga-calendario-de-acionamento-para-2026"
+  ],
+  "publicacoes": [
+    {
+      "mesVigencia": "2025-02",
+      "dataPublicacao": "2025-01-31"
+    },
+    {
+      "mesVigencia": "2025-03",
+      "dataPublicacao": "2025-02-28"
+    },
+    {
+      "mesVigencia": "2025-04",
+      "dataPublicacao": "2025-03-28"
+    },
+    {
+      "mesVigencia": "2025-05",
+      "dataPublicacao": "2025-04-25"
+    },
+    {
+      "mesVigencia": "2025-06",
+      "dataPublicacao": "2025-05-30"
+    },
+    {
+      "mesVigencia": "2025-07",
+      "dataPublicacao": "2025-06-27"
+    },
+    {
+      "mesVigencia": "2025-08",
+      "dataPublicacao": "2025-07-25"
+    },
+    {
+      "mesVigencia": "2025-09",
+      "dataPublicacao": "2025-08-29"
+    },
+    {
+      "mesVigencia": "2025-10",
+      "dataPublicacao": "2025-09-26"
+    },
+    {
+      "mesVigencia": "2025-11",
+      "dataPublicacao": "2025-10-31"
+    },
+    {
+      "mesVigencia": "2025-12",
+      "dataPublicacao": "2025-11-28"
+    },
+    {
+      "mesVigencia": "2026-01",
+      "dataPublicacao": "2025-12-23"
+    },
+    {
+      "mesVigencia": "2026-02",
+      "dataPublicacao": "2026-01-30"
+    },
+    {
+      "mesVigencia": "2026-03",
+      "dataPublicacao": "2026-02-27"
+    },
+    {
+      "mesVigencia": "2026-04",
+      "dataPublicacao": "2026-03-27"
+    },
+    {
+      "mesVigencia": "2026-05",
+      "dataPublicacao": "2026-04-24"
+    },
+    {
+      "mesVigencia": "2026-06",
+      "dataPublicacao": "2026-05-29"
+    },
+    {
+      "mesVigencia": "2026-07",
+      "dataPublicacao": "2026-06-26"
+    },
+    {
+      "mesVigencia": "2026-08",
+      "dataPublicacao": "2026-07-31"
+    },
+    {
+      "mesVigencia": "2026-09",
+      "dataPublicacao": "2026-08-28"
+    },
+    {
+      "mesVigencia": "2026-10",
+      "dataPublicacao": "2026-09-25"
+    },
+    {
+      "mesVigencia": "2026-11",
+      "dataPublicacao": "2026-10-30"
+    },
+    {
+      "mesVigencia": "2026-12",
+      "dataPublicacao": "2026-11-27"
+    },
+    {
+      "mesVigencia": "2027-01",
+      "dataPublicacao": "2026-12-23"
+    }
+  ]
+}
+

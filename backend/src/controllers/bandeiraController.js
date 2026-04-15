@@ -3,7 +3,6 @@ const { sendSuccess } = require("../utils/response");
 
 async function obterBandeiraAtual(req, res, next) {
   try {
-    await bandeiraService.sincronizarBandeiraAtual();
     const bandeira = bandeiraService.obterBandeiraAtual();
     return sendSuccess(res, 200, bandeira);
   } catch (error) {

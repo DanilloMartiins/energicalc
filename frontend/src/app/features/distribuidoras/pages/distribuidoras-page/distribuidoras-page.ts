@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { finalize, map, of, switchMap } from 'rxjs';
+import { map, of, switchMap } from 'rxjs';
 import {
   Distribuidora,
   DistribuidorasPaginadas,
@@ -35,6 +35,7 @@ export class DistribuidorasPage implements OnInit {
   limit = 5;
   totalItems = 0;
   totalPages = 0;
+  private carregamentoId = 0;
 
   ngOnInit(): void {
     this.activatedRoute.queryParamMap.subscribe((params) => {
@@ -112,6 +113,7 @@ export class DistribuidorasPage implements OnInit {
   }
 
   private carregarDistribuidoras(): void {
+    const carregamentoAtual = ++this.carregamentoId;
     this.carregando = true;
     this.erro = '';
     const uf = this.normalizarTexto(this.filtrosForm.controls.uf.value);
@@ -136,9 +138,13 @@ export class DistribuidorasPage implements OnInit {
           );
         }),
       )
-      .pipe(finalize(() => (this.carregando = false)))
       .subscribe({
         next: (payload) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
+          this.carregando = false;
           this.distribuidoras = payload.items;
           this.totalItems = payload.pagination.totalItems;
           this.totalPages = payload.pagination.totalPages;
@@ -146,6 +152,16 @@ export class DistribuidorasPage implements OnInit {
           this.limit = payload.pagination.limit;
         },
         error: (error) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
+          this.carregando = false;
+          if ((error as { name?: string })?.name === 'TimeoutError') {
+            this.erro = 'A API demorou para responder. Verifique backend/proxy e tente novamente.';
+            return;
+          }
+
           this.erro =
             error?.error?.error?.message ||
             error?.error?.message ||

@@ -11,6 +11,7 @@ import { ConsultaApiService } from '../../../../core/services/consulta-api.servi
 })
 export class BandeirasPage implements OnInit {
   private readonly consultaApiService = inject(ConsultaApiService);
+  private carregamentoId = 0;
 
   carregando = false;
   erro = '';
@@ -33,14 +34,25 @@ export class BandeirasPage implements OnInit {
   }
 
   private carregarBandeira(): void {
+    const carregamentoAtual = ++this.carregamentoId;
     this.carregando = true;
     this.erro = '';
 
     this.consultaApiService
       .obterBandeiraAtual()
-      .pipe(finalize(() => (this.carregando = false)))
+      .pipe(
+        finalize(() => {
+          if (carregamentoAtual === this.carregamentoId) {
+            this.carregando = false;
+          }
+        }),
+      )
       .subscribe({
         next: (response) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
           this.bandeiraAtual = response.vigente;
           this.valores = Object.entries(response.valoresKwh || {}).map(([tipo, valor]) => ({
             tipo,
@@ -48,6 +60,10 @@ export class BandeirasPage implements OnInit {
           }));
         },
         error: (error) => {
+          if (carregamentoAtual !== this.carregamentoId) {
+            return;
+          }
+
           this.erro =
             error?.error?.error?.message ||
             error?.error?.message ||

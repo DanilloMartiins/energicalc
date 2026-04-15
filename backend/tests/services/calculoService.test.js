@@ -20,14 +20,14 @@ describe("calculoService", () => {
         consumoKwh: 50,
         mediaDiaria: 1.67,
         diasDecorridos: 30,
-        valorEnergia: 41,
+        valorEnergia: 47.5,
         bandeira: {
           tipo: "verde",
           valor: 0
         },
-        icms: 10.25,
+        icms: 11.88,
         cip: 0,
-        total: 51.25
+        total: 59.38
       });
     });
 
@@ -41,7 +41,7 @@ describe("calculoService", () => {
 
       expect(resultado.distribuidora).toBe("Enel Sao Paulo");
       expect(resultado.consumoKwh).toBe(60);
-      expect(resultado.total).toBe(61.5);
+      expect(resultado.total).toBe(71.25);
     });
 
     it("deve respeitar a bandeira informada na simulacao", () => {
@@ -57,7 +57,7 @@ describe("calculoService", () => {
         tipo: "amarela",
         valor: 0.94
       });
-      expect(resultado.total).toBe(52.42);
+      expect(resultado.total).toBe(60.55);
     });
 
     it("deve usar tarifa dinamica quando houver valor vigente para distribuidora", () => {

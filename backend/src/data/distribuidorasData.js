@@ -1,13 +1,12 @@
-const { readJson } = require("../utils/readJson");
-
-const distribuidoras = readJson("data/distribuidoras.json");
+const distribuidorasAneelData = require("./distribuidorasAneelData");
 
 function getDistribuidoras() {
-  return distribuidoras;
+  return distribuidorasAneelData.getDistribuidorasCache();
 }
 
 function getDistribuidoraById(id) {
   const idInformado = String(id).trim();
+  const distribuidoras = getDistribuidoras();
 
   return distribuidoras.find((item, index) => {
     const idNumerico = String(index + 1);
@@ -17,6 +16,7 @@ function getDistribuidoraById(id) {
 
 function getDistribuidoraByNome(nome) {
   const nomeInformado = String(nome || "").trim().toLowerCase();
+  const distribuidoras = getDistribuidoras();
 
   if (!nomeInformado) {
     return null;
@@ -30,5 +30,6 @@ function getDistribuidoraByNome(nome) {
 module.exports = {
   getDistribuidoras,
   getDistribuidoraById,
-  getDistribuidoraByNome
+  getDistribuidoraByNome,
+  syncDistribuidorasAneel: distribuidorasAneelData.syncDistribuidorasAneel
 };

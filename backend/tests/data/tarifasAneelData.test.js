@@ -1,3 +1,7 @@
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
 function criarCsv(linhas) {
   const cabecalho =
     "SigAgente;DatInicioVigencia;DatFimVigencia;DscBaseTarifaria;DscSubGrupo;DscModalidadeTarifaria;VlrTUSD;VlrTE";
@@ -20,10 +24,14 @@ function criarDeferred() {
 describe("tarifasAneelData", () => {
   const fetchOriginal = global.fetch;
   const timeoutOriginal = process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS;
+  const fallbackAutoOriginal = process.env.ANEEL_ATUALIZA_FALLBACK_LOCAL;
+  const fallbackPathOriginal = process.env.TARIFAS_FALLBACK_FILE_PATH;
 
   afterEach(() => {
     global.fetch = fetchOriginal;
     process.env.ANEEL_TARIFAS_FETCH_TIMEOUT_MS = timeoutOriginal;
+    process.env.ANEEL_ATUALIZA_FALLBACK_LOCAL = fallbackAutoOriginal;
+    process.env.TARIFAS_FALLBACK_FILE_PATH = fallbackPathOriginal;
     jest.resetModules();
     jest.clearAllMocks();
   });
@@ -76,7 +84,7 @@ describe("tarifasAneelData", () => {
     // permanece o valor de fallback local nesta etapa.
     expect(cpfl).toMatchObject({
       sigAgente: "CPFL PAULISTA",
-      tarifaKwh: 0.82,
+      tarifaKwh: 0.9,
       fonte: "fallback_local"
     });
   });
@@ -114,7 +122,7 @@ describe("tarifasAneelData", () => {
 
     expect(enel).toMatchObject({
       sigAgente: "ENEL SP",
-      tarifaKwh: 0.82,
+      tarifaKwh: 0.95,
       fonte: "fallback_local"
     });
     expect(lista.length).toBeGreaterThan(0);
@@ -167,7 +175,7 @@ describe("tarifasAneelData", () => {
     expect(lista.length).toBeGreaterThan(0);
     expect(enel).toMatchObject({
       sigAgente: "ENEL SP",
-      tarifaKwh: 0.82,
+      tarifaKwh: 0.95,
       fonte: "fallback_local"
     });
   });
@@ -194,5 +202,47 @@ describe("tarifasAneelData", () => {
     await tarifasAneelData.syncTarifasAneel(false);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("deve atualizar fallback local quando sincronizacao ANEEL for bem-sucedida", async () => {
+    const pastaTemp = fs.mkdtempSync(path.join(os.tmpdir(), "energicalc-tarifas-"));
+    const arquivoFallback = path.join(pastaTemp, "tarifas-fallback.json");
+    fs.writeFileSync(
+      arquivoFallback,
+      JSON.stringify(
+        [
+          { distribuidora: "Enel Sao Paulo", tarifaKwh: 0.5 },
+          { distribuidora: "CPFL Paulista", tarifaKwh: 0.5 },
+          { distribuidora: "Neoenergia Coelba", tarifaKwh: 0.5 }
+        ],
+        null,
+        2
+      ),
+      "utf-8"
+    );
+
+    process.env.ANEEL_ATUALIZA_FALLBACK_LOCAL = "true";
+    process.env.TARIFAS_FALLBACK_FILE_PATH = arquivoFallback;
+
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      text: async () =>
+        criarCsv([
+          "ENEL SP;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;900,00;300,00",
+          "CPFL PAULISTA;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;600,00;300,00",
+          "COELBA;2026-01-01;2099-12-31;Tarifa de Aplicacao;B1;Convencional;500,00;200,00"
+        ])
+    });
+
+    const tarifasAneelData = require("../../src/data/tarifasAneelData");
+    await tarifasAneelData.syncTarifasAneel(true);
+
+    const salvo = JSON.parse(fs.readFileSync(arquivoFallback, "utf-8"));
+
+    expect(salvo).toEqual([
+      { distribuidora: "Enel Sao Paulo", tarifaKwh: 1.2 },
+      { distribuidora: "CPFL Paulista", tarifaKwh: 0.9 },
+      { distribuidora: "Neoenergia Coelba", tarifaKwh: 0.7 }
+    ]);
   });
 });

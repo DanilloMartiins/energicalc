@@ -86,7 +86,9 @@ function portaDisponivel(porta) {
       server.close(() => resolve(true));
     });
 
-    server.listen(porta, "0.0.0.0");
+    // Sem host explicito, o Node valida conflito considerando bindings locais existentes
+    // (127.0.0.1, ::1, 0.0.0.0), evitando falso "livre" em Windows.
+    server.listen(porta);
   });
 }
 
@@ -174,6 +176,24 @@ function tentarLiberarPortasWindows() {
 }
 
 async function validarPortas() {
+  if (process.platform === "win32") {
+    const ocupadas = PORTAS_OBRIGATORIAS.filter((porta) => {
+      return listarPidsPorPortaWindows(porta).length > 0;
+    });
+
+    if (ocupadas.length === 0) {
+      return true;
+    }
+
+    console.error(
+      `Porta(s) em uso: ${ocupadas.join(", ")}. Encerre processos antigos antes de subir o ambiente.`
+    );
+    console.error(
+      "Sugestao (PowerShell): netstat -ano | findstr :3000 e netstat -ano | findstr :4301"
+    );
+    return false;
+  }
+
   const verificacoes = await Promise.all(
     PORTAS_OBRIGATORIAS.map(async (porta) => ({
       porta,
