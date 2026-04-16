@@ -7,10 +7,9 @@ import {
   ValidationErrors,
   Validators,
 } from '@angular/forms';
-import { catchError, finalize, forkJoin, of, Subscription, timeout } from 'rxjs';
+import { catchError, finalize, map, of, Subscription, switchMap, throwError, timeout } from 'rxjs';
 import { CalculoGetPayload, ResultadoCalculo } from '../../../../core/models/calculo.model';
 import { BandeiraAtual } from '../../../../core/models/bandeira.model';
-import { Distribuidora } from '../../../../core/models/distribuidora.model';
 import { ConsultaApiService } from '../../../../core/services/consulta-api.service';
 import { SimuladorApiService } from '../../../../core/services/simulador-api.service';
 
@@ -45,7 +44,11 @@ export class SimuladorPage implements OnInit, OnDestroy {
       leituraAnterior: [null as number | null, [Validators.required, Validators.min(0.01)]],
       leituraAtual: [null as number | null, [Validators.required, Validators.min(0.01)]],
       diasDecorridos: [30 as number | null, [Validators.required, Validators.min(0.01)]],
-      distribuidora: ['', Validators.required],
+      cidade: ['', Validators.required],
+      uf: [
+        '',
+        [Validators.required, Validators.minLength(2), Validators.maxLength(2), Validators.pattern(/^[a-zA-Z]{2}$/)],
+      ],
       bandeira: ['', Validators.required],
     },
     {
@@ -59,10 +62,9 @@ export class SimuladorPage implements OnInit, OnDestroy {
   erroSimulacao = '';
   avisoSimulacao = '';
 
-  distribuidoras: Distribuidora[] = [];
   bandeiraVigente = '';
   resultado: ResultadoCalculo | null = null;
-  ultimoPayloadSimulado: CalculoGetPayload | null = null;
+  ultimaChaveSimulacao = '';
   requisicaoSimulacao: Subscription | null = null;
   simulacaoWatchdogId: number | null = null;
 
@@ -90,11 +92,14 @@ export class SimuladorPage implements OnInit, OnDestroy {
       return;
     }
 
-    const distribuidoraCodigo = String(this.formulario.controls.distribuidora.value).trim();
+    const cidade = String(this.formulario.controls.cidade.value).trim();
+    const uf = String(this.formulario.controls.uf.value)
+      .trim()
+      .toUpperCase();
     const bandeira = String(this.formulario.controls.bandeira.value).trim();
-    const payload = this.montarPayloadGet(distribuidoraCodigo, bandeira);
+    const chaveSimulacaoAtual = this.montarChaveSimulacao(cidade, uf, bandeira);
 
-    if (this.payloadEhIgualAoUltimo(payload)) {
+    if (chaveSimulacaoAtual === this.ultimaChaveSimulacao) {
       this.avisoSimulacao = 'Altere algum campo para simular novamente.';
       return;
     }
@@ -116,10 +121,21 @@ export class SimuladorPage implements OnInit, OnDestroy {
         'A simulacao nao retornou a tempo. Verifique backend/proxy e tente novamente.';
     }, 16000);
 
-    this.requisicaoSimulacao = this.simuladorApiService
-      .calcularFaturaGet(payload)
+    this.requisicaoSimulacao = this.consultaApiService
+      .resolverDistribuidoraPorCidadeUf(cidade, uf)
       .pipe(
-        timeout(15000),
+        timeout(8000),
+        switchMap((distribuidora) => {
+          if (!distribuidora) {
+            return throwError(() => new Error('DISTRIBUIDORA_NAO_ENCONTRADA_POR_CIDADE_UF'));
+          }
+
+          const payload = this.montarPayloadGet(distribuidora.codigo, bandeira);
+          return this.simuladorApiService.calcularFaturaGet(payload).pipe(
+            timeout(15000),
+            map((resultado) => ({ resultado })),
+          );
+        }),
         finalize(() => {
           this.enviando = false;
           this.sincronizarEstadoCampos();
@@ -132,11 +148,17 @@ export class SimuladorPage implements OnInit, OnDestroy {
         }),
       )
       .subscribe({
-        next: (resultado) => {
+        next: ({ resultado }) => {
           this.resultado = resultado;
-          this.ultimoPayloadSimulado = { ...payload };
+          this.ultimaChaveSimulacao = chaveSimulacaoAtual;
         },
         error: (error) => {
+          if (error instanceof Error && error.message === 'DISTRIBUIDORA_NAO_ENCONTRADA_POR_CIDADE_UF') {
+            this.erroSimulacao =
+              'Nao encontramos distribuidora para essa cidade/UF. Confira os dados e tente novamente.';
+            return;
+          }
+
           if ((error as { name?: string })?.name === 'TimeoutError') {
             this.erroSimulacao =
               'A simulacao demorou mais do que o esperado. Confira se o backend esta ativo e tente novamente.';
@@ -156,7 +178,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
   }
 
   get podeSimular(): boolean {
-    if (this.enviando || this.carregandoOpcoes || this.distribuidoras.length === 0 || !this.bandeiraVigente) {
+    if (this.enviando || this.carregandoOpcoes || !this.bandeiraVigente) {
       return false;
     }
 
@@ -164,11 +186,14 @@ export class SimuladorPage implements OnInit, OnDestroy {
       return false;
     }
 
-    const distribuidoraCodigo = String(this.formulario.controls.distribuidora.value).trim();
+    const cidade = String(this.formulario.controls.cidade.value).trim();
+    const uf = String(this.formulario.controls.uf.value)
+      .trim()
+      .toUpperCase();
     const bandeira = String(this.formulario.controls.bandeira.value).trim();
-    const payloadAtual = this.montarPayloadGet(distribuidoraCodigo, bandeira);
+    const chaveAtual = this.montarChaveSimulacao(cidade, uf, bandeira);
 
-    return !this.payloadEhIgualAoUltimo(payloadAtual);
+    return chaveAtual !== this.ultimaChaveSimulacao;
   }
 
   get consumoCalculado(): number | null {
@@ -245,18 +270,36 @@ export class SimuladorPage implements OnInit, OnDestroy {
     return 'Confira esse valor e tente novamente.';
   }
 
-  mensagemErroDistribuidora(): string {
-    const campo = this.formulario.controls.distribuidora;
+  mensagemErroCidade(): string {
+    const campo = this.formulario.controls.cidade;
 
     if (!(campo.touched || campo.dirty) || !campo.errors) {
       return '';
     }
 
     if (campo.errors['required']) {
-      return 'Escolha uma distribuidora para a simulacao.';
+      return 'Informe a cidade onde voce mora.';
     }
 
-    return 'Escolha uma distribuidora valida para continuar.';
+    return 'Confira a cidade informada para continuar.';
+  }
+
+  mensagemErroUf(): string {
+    const campo = this.formulario.controls.uf;
+
+    if (!(campo.touched || campo.dirty) || !campo.errors) {
+      return '';
+    }
+
+    if (campo.errors['required']) {
+      return 'Informe a UF com 2 letras (ex.: PE).';
+    }
+
+    if (campo.errors['minlength'] || campo.errors['maxlength'] || campo.errors['pattern']) {
+      return 'A UF deve conter apenas 2 letras.';
+    }
+
+    return 'Confira a UF informada para continuar.';
   }
 
   formatarBandeira(tipoBandeira: string): string {
@@ -271,20 +314,11 @@ export class SimuladorPage implements OnInit, OnDestroy {
     this.sincronizarEstadoCampos();
     this.erroCarregamento = '';
     this.bandeiraVigente = '';
-    let erroDistribuidoras = '';
     let erroBandeira = '';
 
-    forkJoin({
-      distribuidoras: this.consultaApiService.listarDistribuidoras().pipe(
-        catchError((error) => {
-          erroDistribuidoras = this.extrairMensagemErro(
-            error,
-            'Nao conseguimos carregar as distribuidoras agora.',
-          );
-          return of([] as Distribuidora[]);
-        }),
-      ),
-      bandeiraAtual: this.consultaApiService.obterBandeiraAtual().pipe(
+    this.consultaApiService
+      .obterBandeiraAtual()
+      .pipe(
         catchError((error) => {
           erroBandeira = this.extrairMensagemErro(
             error,
@@ -292,8 +326,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
           );
           return of(null as BandeiraAtual | null);
         }),
-      ),
-    })
+      )
       .pipe(
         finalize(() => {
           this.carregandoOpcoes = false;
@@ -301,24 +334,14 @@ export class SimuladorPage implements OnInit, OnDestroy {
         }),
       )
       .subscribe({
-        next: ({ distribuidoras, bandeiraAtual }) => {
-          this.distribuidoras = distribuidoras;
+        next: (bandeiraAtual) => {
           this.bandeiraVigente = bandeiraAtual?.vigente?.trim() ?? '';
-
-          if (!this.formulario.controls.distribuidora.value && distribuidoras.length > 0) {
-            this.formulario.patchValue({ distribuidora: distribuidoras[0].codigo });
-          }
 
           if (this.bandeiraVigente) {
             this.formulario.patchValue({ bandeira: this.bandeiraVigente });
           }
 
-          if (!distribuidoras.length && !this.bandeiraVigente) {
-            this.erroCarregamento =
-              'Nao conseguimos conectar com o backend. Verifique se ele esta rodando na porta 3000 e tente novamente.';
-          } else if (!distribuidoras.length) {
-            this.erroCarregamento = erroDistribuidoras || 'As distribuidoras nao carregaram agora.';
-          } else if (!this.bandeiraVigente) {
+          if (!this.bandeiraVigente) {
             this.erroCarregamento =
               erroBandeira || 'A bandeira vigente nao carregou agora. Tente novamente.';
           }
@@ -329,14 +352,13 @@ export class SimuladorPage implements OnInit, OnDestroy {
   }
 
   private sincronizarEstadoCampos(): void {
-    const leituraEditavel = !this.enviando && !this.carregandoOpcoes;
-    const distribuidoraEditavel =
-      !this.enviando && !this.carregandoOpcoes && this.distribuidoras.length > 0;
+    const camposEditaveis = !this.enviando && !this.carregandoOpcoes;
 
-    this.definirEstadoControle(this.formulario.controls.leituraAnterior, leituraEditavel);
-    this.definirEstadoControle(this.formulario.controls.leituraAtual, leituraEditavel);
-    this.definirEstadoControle(this.formulario.controls.diasDecorridos, leituraEditavel);
-    this.definirEstadoControle(this.formulario.controls.distribuidora, distribuidoraEditavel);
+    this.definirEstadoControle(this.formulario.controls.leituraAnterior, camposEditaveis);
+    this.definirEstadoControle(this.formulario.controls.leituraAtual, camposEditaveis);
+    this.definirEstadoControle(this.formulario.controls.diasDecorridos, camposEditaveis);
+    this.definirEstadoControle(this.formulario.controls.cidade, camposEditaveis);
+    this.definirEstadoControle(this.formulario.controls.uf, camposEditaveis);
   }
 
   private definirEstadoControle(controle: AbstractControl, habilitado: boolean): void {
@@ -360,18 +382,25 @@ export class SimuladorPage implements OnInit, OnDestroy {
     };
   }
 
-  private payloadEhIgualAoUltimo(payloadAtual: CalculoGetPayload): boolean {
-    if (!this.ultimoPayloadSimulado) {
-      return false;
-    }
+  private montarChaveSimulacao(cidade: string, uf: string, bandeira: string): string {
+    const leituraAnterior = Number(this.formulario.controls.leituraAnterior.value);
+    const leituraAtual = Number(this.formulario.controls.leituraAtual.value);
+    const diasDecorridos = Number(this.formulario.controls.diasDecorridos.value);
+    const cidadeNormalizada = cidade
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, ' ');
 
-    return (
-      this.ultimoPayloadSimulado.leituraAnterior === payloadAtual.leituraAnterior &&
-      this.ultimoPayloadSimulado.leituraAtual === payloadAtual.leituraAtual &&
-      this.ultimoPayloadSimulado.diasDecorridos === payloadAtual.diasDecorridos &&
-      this.ultimoPayloadSimulado.distribuidoraId === payloadAtual.distribuidoraId &&
-      this.ultimoPayloadSimulado.bandeira === payloadAtual.bandeira
-    );
+    return [
+      leituraAnterior,
+      leituraAtual,
+      diasDecorridos,
+      uf.trim().toUpperCase(),
+      cidadeNormalizada,
+      bandeira.trim().toLowerCase(),
+    ].join('|');
   }
 
   private extrairMensagemErro(error: unknown, mensagemPadrao: string): string {

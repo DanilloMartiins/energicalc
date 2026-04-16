@@ -43,7 +43,7 @@ describe("distribuidorasAneelData", () => {
     const distribuidorasAneelData = require("../../src/data/distribuidorasAneelData");
     const lista = distribuidorasAneelData.getDistribuidorasCache();
 
-    expect(lista).toHaveLength(3);
+    expect(lista.length).toBeGreaterThanOrEqual(3);
     expect(lista.find((item) => item.codigo === "ENEL_SP")).toEqual({
       codigo: "ENEL_SP",
       nome: "Enel Sao Paulo Atualizada",
@@ -63,12 +63,9 @@ describe("distribuidorasAneelData", () => {
     const distribuidorasAneelData = require("../../src/data/distribuidorasAneelData");
     const lista = await distribuidorasAneelData.syncDistribuidorasAneel(true);
 
-    expect(lista).toHaveLength(3);
-    expect(lista.map((item) => item.codigo)).toEqual([
-      "ENEL_SP",
-      "CPFL_PAULISTA",
-      "COELBA"
-    ]);
+    expect(lista.length).toBeGreaterThanOrEqual(3);
+    const codigos = lista.map((item) => item.codigo);
+    expect(codigos).toEqual(expect.arrayContaining(["ENEL_SP", "CPFL_PAULISTA", "COELBA"]));
   });
 
   it("deve persistir fallback local quando sincronizacao ANEEL for bem-sucedida", async () => {
@@ -104,10 +101,12 @@ describe("distribuidorasAneelData", () => {
     await distribuidorasAneelData.syncDistribuidorasAneel(true);
 
     const salvo = JSON.parse(fs.readFileSync(arquivoFallback, "utf-8"));
-    expect(salvo).toEqual([
-      { codigo: "ENEL_SP", nome: "Enel Sao Paulo", uf: "SP" },
-      { codigo: "CPFL_PAULISTA", nome: "CPFL Paulista", uf: "SP" },
-      { codigo: "COELBA", nome: "Neoenergia Coelba", uf: "BA" }
-    ]);
+    expect(salvo).toEqual(
+      expect.arrayContaining([
+        { codigo: "ENEL_SP", nome: "Enel Sao Paulo", uf: "SP" },
+        { codigo: "CPFL_PAULISTA", nome: "CPFL Paulista", uf: "SP" },
+        { codigo: "COELBA", nome: "Neoenergia Coelba", uf: "BA" }
+      ])
+    );
   });
 });

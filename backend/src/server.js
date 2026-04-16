@@ -15,15 +15,18 @@ const intervaloSincronizacaoMs =
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+  distribuidorasService.inicializarDistribuidorasRepositoryEmBackground();
   tarifasService.sincronizarTarifasNoMesEmBackground();
   bandeiraService.sincronizarBandeiraPorCalendarioEmBackground();
   distribuidorasService.sincronizarDistribuidorasAneelEmBackground(true);
+  distribuidorasService.sincronizarCoberturaDistribuidorasNoMesEmBackground();
 });
 
 const timerSincronizacaoTarifas = setInterval(() => {
   tarifasService.sincronizarTarifasNoMesEmBackground();
   bandeiraService.sincronizarBandeiraPorCalendarioEmBackground();
   distribuidorasService.sincronizarDistribuidorasAneelEmBackground(true);
+  distribuidorasService.sincronizarCoberturaDistribuidorasNoMesEmBackground();
 }, intervaloSincronizacaoMs);
 
 if (typeof timerSincronizacaoTarifas.unref === "function") {

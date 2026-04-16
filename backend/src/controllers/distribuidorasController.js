@@ -60,6 +60,34 @@ function listarDistribuidoras(req, res, next) {
   }
 }
 
+function resolverDistribuidoraPorCidadeUf(req, res, next) {
+  try {
+    const cidade = String(req.query.cidade || "").trim();
+    const uf = String(req.query.uf || "")
+      .trim()
+      .toUpperCase();
+
+    if (!cidade || !uf) {
+      return sendError(res, 400, "cidade e uf sao obrigatorios para resolver a distribuidora.");
+    }
+
+    if (uf.length !== 2) {
+      return sendError(res, 400, "uf deve ter 2 caracteres.");
+    }
+
+    const distribuidora = distribuidorasService.obterDistribuidoraPorCidadeUf(cidade, uf);
+
+    if (!distribuidora) {
+      return sendError(res, 404, "Nao foi possivel identificar distribuidora para cidade/UF.");
+    }
+
+    return sendSuccess(res, 200, distribuidora);
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
-  listarDistribuidoras
+  listarDistribuidoras,
+  resolverDistribuidoraPorCidadeUf
 };

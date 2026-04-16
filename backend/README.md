@@ -2,7 +2,7 @@
 
 API backend em Node.js + Express para simulacao de fatura de energia de distribuidoras brasileiras.
 
-Arquitetura: route -> controller -> service -> data (JSON)
+Arquitetura: route -> controller -> service -> data/repository
 
 ## Objetivo do projeto
 
@@ -18,20 +18,22 @@ O foco e manter um codigo simples, legivel e facil de evoluir.
 - Dotenv
 - Jest
 - Supertest
-- JSON local como fonte de dados (sem banco de dados)
+- JSON local como fallback
+- PostgreSQL (opcional para distribuidoras)
 
 ## Arquitetura
 
 Padrao utilizado:
 
-`routes -> controllers -> services -> data`
+`routes -> controllers -> services -> data/repository`
 
 Responsabilidade de cada camada:
 
 - `routes`: define os endpoints
 - `controllers`: recebe request, valida entrada e devolve response
 - `services`: contem as regras de negocio
-- `data`: acesso aos dados JSON locais
+- `data`: acesso aos dados locais/fallback e sincronizacao
+- `repository`: persistencia em banco (quando habilitado)
 
 ## Como instalar e rodar
 
@@ -68,6 +70,12 @@ Servidor padrao:
 
 - `PORT`: porta da aplicacao
 - `NODE_ENV`: ambiente de execucao (`development`, `production`, etc.)
+- `DB_DISTRIBUIDORAS_ENABLED`: habilita persistencia de distribuidoras em banco (`true`/`false`)
+- `DATABASE_URL`: string de conexao PostgreSQL (prioritaria)
+- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: conexao PostgreSQL por campos separados
+- `DB_SSL`: habilita SSL na conexao PostgreSQL (`true`/`false`)
+
+Se o banco nao estiver configurado, a API continua funcionando com cache/fallback local.
 
 ## Padrao de resposta da API
 

@@ -8,6 +8,10 @@ const impostosController = require("../controllers/impostosController");
 const router = express.Router();
 
 router.get("/distribuidoras", distribuidorasController.listarDistribuidoras);
+router.get(
+  "/distribuidoras/resolver",
+  distribuidorasController.resolverDistribuidoraPorCidadeUf
+);
 router.get("/bandeira", bandeiraController.obterBandeiraAtual);
 router.get("/tarifas", tarifasController.listarTarifas);
 router.get("/impostos", impostosController.listarImpostos);

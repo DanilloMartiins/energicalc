@@ -64,20 +64,27 @@
         {{ mensagemErroDiasDecorridos() }}
       </small>
 
-      <label for="distribuidora">Distribuidora</label>
-      <select
-        id="distribuidora"
-        formControlName="distribuidora"
-      >
-        <option value="" disabled *ngIf="distribuidoras.length === 0">
-          Nenhuma distribuidora disponivel
-        </option>
-        <option *ngFor="let item of distribuidoras" [value]="item.codigo">
-          {{ item.nome }} ({{ item.uf }})
-        </option>
-      </select>
-      <small class="field-error" *ngIf="mensagemErroDistribuidora()">
-        {{ mensagemErroDistribuidora() }}
+      <label for="cidade">Cidade</label>
+      <input
+        id="cidade"
+        type="text"
+        formControlName="cidade"
+        placeholder="Ex.: Campinas"
+      />
+      <small class="field-error" *ngIf="mensagemErroCidade()">
+        {{ mensagemErroCidade() }}
+      </small>
+
+      <label for="uf">UF</label>
+      <input
+        id="uf"
+        type="text"
+        formControlName="uf"
+        placeholder="Ex.: SP"
+        maxlength="2"
+      />
+      <small class="field-error" *ngIf="mensagemErroUf()">
+        {{ mensagemErroUf() }}
       </small>
 
       <div class="bandeira-vigente">

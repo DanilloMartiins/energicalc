@@ -60,7 +60,12 @@ export class HomePage implements OnInit {
             return;
           }
 
-          this.statusApi = health.status === 'ok' ? 'Online' : 'Indisponivel';
+          this.statusApi =
+            health.status === 'ok'
+              ? 'Online'
+              : health.status === 'fallback'
+                ? 'Offline (fallback local)'
+                : 'Indisponivel';
           this.totalDistribuidoras = distribuidoras.length;
           this.impostos = impostos;
           this.mediaTarifaKwh = this.calcularMediaTarifa(tarifas.map((item) => item.tarifaKwh));

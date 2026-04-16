@@ -13,5 +13,415 @@
     "codigo": "COELBA",
     "nome": "Neoenergia Coelba",
     "uf": "BA"
+  },
+  {
+    "codigo": "ANEEL_ENEL_CE",
+    "nome": "COMPANHIA ENERGETICA DO CEARA",
+    "uf": "CE"
+  },
+  {
+    "codigo": "ANEEL_CEEE_D",
+    "nome": "COMPANHIA ESTADUAL DE DISTRIBUICAO DE ENERGIA ELETRICA - CEEE-D",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_EMR",
+    "nome": "ENERGISA MINAS RIO - DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_RGE_SUL",
+    "nome": "RGE SUL DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_RGE",
+    "nome": "RIO GRANDE ENERGIA SA",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_DCELT",
+    "nome": "DCELT DISTRIBUIDORA CATARINENSE DE ENERGIA ELETRICA S/A",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_ELFSM",
+    "nome": "EMPRESA LUZ E FORCA SANTA MARIA S A",
+    "uf": "ES"
+  },
+  {
+    "codigo": "ANEEL_ENEL_RJ",
+    "nome": "AMPLA ENERGIA E SERVICOS S.A.",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_ENF",
+    "nome": "ENERGISA NOVA FRIBURGO - DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "RJ"
+  },
+  {
+    "codigo": "ANEEL_NEOENERGIA_BRAS_LIA",
+    "nome": "NEOENERGIA DISTRIBUICAO BRASILIA S.A.",
+    "uf": "DF"
+  },
+  {
+    "codigo": "ANEEL_EQUATORIAL_PA",
+    "nome": "EQUATORIAL PARA DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "PA"
+  },
+  {
+    "codigo": "ANEEL_CPFL_JAGUARI",
+    "nome": "COMPANHIA JAGUARI DE ENERGIA",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_CNEE",
+    "nome": "COMPANHIA NACIONAL DE ENERGIA ELETRICA",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_EEB",
+    "nome": "EMPRESA ELETRICA BRAGANTINA S A",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_EQUATORIAL_PI",
+    "nome": "EQUATORIAL PIAUI DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "PI"
+  },
+  {
+    "codigo": "ANEEL_EAC",
+    "nome": "ENERGISA ACRE - DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "AC"
+  },
+  {
+    "codigo": "ANEEL_ELEKTRO",
+    "nome": "ELEKTRO REDES S.A.",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_DMED",
+    "nome": "DME DISTRIBUICAO S.A. - DMED",
+    "uf": "MG"
+  },
+  {
+    "codigo": "ANEEL_EFLJC",
+    "nome": "EMPRESA FORCA E LUZ JOAO CESA LTDA",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_UHENPAL",
+    "nome": "NOVA PALMA ENERGIA LTDA",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_ERO",
+    "nome": "ENERGISA RONDONIA - DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "RO"
+  },
+  {
+    "codigo": "ANEEL_CEA",
+    "nome": "COMPANHIA DE ELETRICIDADE DO AMAPA CEA",
+    "uf": "AP"
+  },
+  {
+    "codigo": "ANEEL_PACTO_ENERGIA_PR",
+    "nome": "FORCA E LUZ CORONEL VIVIDA LTDA",
+    "uf": "PR"
+  },
+  {
+    "codigo": "ANEEL_MUXENERGIA",
+    "nome": "MUXFELDT MARIN E CIA LTDA",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_CPFL_SANTA_CRUZ",
+    "nome": "COMPANHIA LUZ E FORCA SANTA CRUZ",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_EFLUL",
+    "nome": "EMPRESA FORCA E LUZ DE URUSSANGA LTDA",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_COPEL_DIS",
+    "nome": "COPEL DISTRIBUICAO S.A.",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_CEMIG_D",
+    "nome": "CEMIG DISTRIBUICAO S.A",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_NEOENERGIA_PE",
+    "nome": "COMPANHIA ENERGETICA DE PERNAMBUCO",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_EQUATORIAL_MA",
+    "nome": "EQUATORIAL MARANHAO DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "MA"
+  },
+  {
+    "codigo": "ANEEL_ETO",
+    "nome": "ENERGISA TOCANTINS DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "TO"
+  },
+  {
+    "codigo": "ANEEL_EBO",
+    "nome": "ENERGISA BORBOREMA - DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "PB"
+  },
+  {
+    "codigo": "ANEEL_EMS",
+    "nome": "ENERGISA MATO GROSSO DO SUL - DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "MS"
+  },
+  {
+    "codigo": "ANEEL_CFLO",
+    "nome": "COMPANHIA FORCA E LUZ DO OESTE",
+    "uf": "PR"
+  },
+  {
+    "codigo": "ANEEL_CHESP",
+    "nome": "COMPANHIA HIDROELETRICA SAO PATRICIO - CHESP",
+    "uf": "GO"
+  },
+  {
+    "codigo": "ANEEL_ELETROCAR",
+    "nome": "CENTRAIS ELETRICAS DE CARAZINHO SA",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_ESE",
+    "nome": "ENERGISA SERGIPE - DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "SE"
+  },
+  {
+    "codigo": "ANEEL_BOA_VISTA",
+    "nome": "RORAIMA ENERGIA S.A",
+    "uf": "RR"
+  },
+  {
+    "codigo": "ANEEL_EQUATORIAL_GO",
+    "nome": "EQUATORIAL GOIAS DISTRIBUIDORA DE ENERGIA S/A",
+    "uf": "GO"
+  },
+  {
+    "codigo": "ANEEL_COSERN",
+    "nome": "COMPANHIA ENERGETICA DO RIO GRANDE DO NORTE COSERN",
+    "uf": "RN"
+  },
+  {
+    "codigo": "ANEEL_LIGHT_SESA",
+    "nome": "LIGHT SERVICOS DE ELETRICIDADE S A",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_EDEVP",
+    "nome": "EMPRESA DE DISTRIBUICAO DE ENERGIA VALE PARANAPANEMA S.A.",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_ESS",
+    "nome": "ENERGISA SUL-SUDESTE - DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_EMT",
+    "nome": "ENERGISA MATO GROSSO - DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "MT"
+  },
+  {
+    "codigo": "ANEEL_CELESC",
+    "nome": "CELESC DISTRIBUICAO S.A",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_DEMEI",
+    "nome": "DEPARTAMENTO MUNICIPAL DE ENERGIA DE IJUI",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_EDP_SP",
+    "nome": "EDP SAO PAULO DISTRIBUICAO DE ENERGIA S.A.",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_ELETROPAULO",
+    "nome": "ELETROPAULO METROPOLITANA ELETRICIDADE DE SAO PAULO S.A.",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_CPFL_PIRATINING",
+    "nome": "COMPANHIA PIRATININGA DE FORCA E LUZ",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_HIDROPAN",
+    "nome": "HIDROPAN DISTRIBUICAO DE ENERGIA S.A.",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_CPFL_LESTE_PAULI",
+    "nome": "COMPANHIA LESTE PAULISTA DE ENERGIA",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_CPFL_SUL_PAULIST",
+    "nome": "COMPANHIA SUL PAULISTA DE ENERGIA",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_CPFL_MOCOCA",
+    "nome": "COMPANHIA LUZ E FORCA DE MOCOCA",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_SULGIPE",
+    "nome": "COMPANHIA SUL SERGIPANA DE ELETRICIDADE",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_EDP_ES",
+    "nome": "EDP ESPIRITO SANTO DISTRIBUICAO DE ENERGIA S.A.",
+    "uf": "ES"
+  },
+  {
+    "codigo": "ANEEL_EQUATORIAL_AL",
+    "nome": "EQUATORIAL ALAGOAS DISTRIBUIDORA DE ENERGIA S.A.",
+    "uf": "AL"
+  },
+  {
+    "codigo": "ANEEL_EPB",
+    "nome": "ENERGISA PARAIBA - DISTRIBUIDORA DE ENERGIA S.A",
+    "uf": "PB"
+  },
+  {
+    "codigo": "ANEEL_COCEL",
+    "nome": "COMPANHIA CAMPOLARGUENSE DE ENERGIA COCEL",
+    "uf": "PR"
+  },
+  {
+    "codigo": "ANEEL_CERR",
+    "nome": "COMPANHIA ENERGETICA DE RORAIMA",
+    "uf": "RR"
+  },
+  {
+    "codigo": "ANEEL_COORSEL",
+    "nome": "COOPERATIVA REGIONAL SUL DE ELETRIFICACAO RURAL",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERGRAL",
+    "nome": "COOPERATIVA DE ELETRICIDADE DE GRAVATAL",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CEJAMA",
+    "nome": "CEJAMA - COOPERATIVA DE ELETRICIDADE JACINTO MACHADO",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERPALO",
+    "nome": "COOPERATIVA DE ELETRICIDADE DE PAULO LOPES",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_COOPERA",
+    "nome": "COOPERATIVA PIONEIRA DE ELETRIFICACAO - COOPERA",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERSUL",
+    "nome": "CERSUL - COOPERATIVA DE DISTRIBUICAO DE ENERGIA",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERRP",
+    "nome": "COOPERATIVA DE ELETRIFICACAO E DESENVOLVIMENTO DA REGIAO DE SAO JOSE DO RIO PRETO-CERRP",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_CERAL_ANIT_POLIS",
+    "nome": "COOPERATIVA DE DISTRIBUICAO DE ENERGIA ELETRICA DE ANITAPOLIS - CERAL",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_AME",
+    "nome": "AMAZONAS ENERGIA S.A",
+    "uf": "AM"
+  },
+  {
+    "codigo": "ANEEL_CERBRANORTE",
+    "nome": "COOPERATIVA DE ELETRIFICACAO DE BRACO DO NORTE",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERTREL",
+    "nome": "COOPERATIVA DE ENERGIA TREVISO",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CEPRAG",
+    "nome": "COOPERATIVA DE ELETRICIDADE PRAIA GRANDE",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERTEL_ENERGIA",
+    "nome": "COOPERATIVA DE DISTRIBUICAO DE ENERGIA TEUTONIA",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_CERMOFUL",
+    "nome": "COOPERATIVA FUMACENSE DE ELETRICIDADE - CERMOFUL ENERGIA",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERMISS_ES",
+    "nome": "COOPERATIVA DE DISTRIBUICAO E GERACAO DE ENERGIA DAS MISSOES - CERMISSOES",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_COPREL",
+    "nome": "COPREL COOPERATIVA DE ENERGIA",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_CERA",
+    "nome": "CERACA - COOPERATIVA DISTRIBUIDORA DE ENERGIA VALE DO ARACA",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_NEOENERGIA_BRASILIA",
+    "nome": "NEOENERGIA DISTRIBUICAO BRASILIA S.A.",
+    "uf": "DF"
+  },
+  {
+    "codigo": "ANEEL_CERAL_ANITAPOLIS",
+    "nome": "COOPERATIVA DE DISTRIBUICAO DE ENERGIA ELETRICA DE ANITAPOLIS - CERAL",
+    "uf": "SC"
+  },
+  {
+    "codigo": "ANEEL_CERMISSOES",
+    "nome": "COOPERATIVA DE DISTRIBUICAO E GERACAO DE ENERGIA DAS MISSOES - CERMISSOES",
+    "uf": "RS"
+  },
+  {
+    "codigo": "ANEEL_CERACA",
+    "nome": "CERACA - COOPERATIVA DISTRIBUIDORA DE ENERGIA VALE DO ARACA",
+    "uf": "BR"
+  },
+  {
+    "codigo": "ANEEL_CPFL PAULISTA",
+    "nome": "COMPANHIA PAULISTA DE FORCA E LUZ",
+    "uf": "SP"
+  },
+  {
+    "codigo": "ANEEL_ENEL SP",
+    "nome": "ELETROPAULO METROPOLITANA ELETRICIDADE DE SAO PAULO S.A.",
+    "uf": "SP"
   }
 ]

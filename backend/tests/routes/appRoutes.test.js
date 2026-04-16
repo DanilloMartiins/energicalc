@@ -119,10 +119,13 @@ describe("Rotas da API", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.data).toHaveLength(2);
+    expect(response.body.data.length).toBeGreaterThan(0);
     response.body.data.forEach((item) => {
       expect(item.uf).toBe("SP");
     });
+    const codigos = response.body.data.map((item) => item.codigo);
+    expect(codigos).toContain("ENEL_SP");
+    expect(codigos).toContain("CPFL_PAULISTA");
   });
 
   it("GET /api/distribuidoras com filtro nome deve retornar match parcial sem case sensitive", async () => {
@@ -131,16 +134,14 @@ describe("Rotas da API", () => {
       .query({ nome: "neoenergia" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      data: [
-        {
-          codigo: "COELBA",
-          nome: "Neoenergia Coelba",
-          uf: "BA"
-        }
-      ]
+    expect(response.body.success).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBeGreaterThan(0);
+    response.body.data.forEach((item) => {
+      expect(String(item.nome).toLowerCase()).toContain("neoenergia");
     });
+    const possuiCoelba = response.body.data.some((item) => item.codigo === "COELBA");
+    expect(possuiCoelba).toBe(true);
   });
 
   it("GET /api/distribuidoras nao deve bloquear quando ANEEL estiver lenta", async () => {
@@ -163,15 +164,55 @@ describe("Rotas da API", () => {
       .query({ uf: "BA", nome: "neoenergia" });
 
     expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    response.body.data.forEach((item) => {
+      expect(item.uf).toBe("BA");
+      expect(String(item.nome).toLowerCase()).toContain("neoenergia");
+    });
+    const possuiCoelba = response.body.data.some((item) => item.codigo === "COELBA");
+    expect(possuiCoelba).toBe(true);
+  });
+
+  it("GET /api/distribuidoras/resolver deve retornar distribuidora por cidade + uf", async () => {
+    const response = await request(app)
+      .get("/api/distribuidoras/resolver")
+      .query({ cidade: "Campinas", uf: "SP" });
+
+    expect(response.status).toBe(200);
     expect(response.body).toEqual({
       success: true,
-      data: [
-        {
-          codigo: "COELBA",
-          nome: "Neoenergia Coelba",
-          uf: "BA"
-        }
-      ]
+      data: {
+        codigo: "CPFL_PAULISTA",
+        nome: "CPFL Paulista",
+        uf: "SP"
+      }
+    });
+  });
+
+  it("GET /api/distribuidoras/resolver deve normalizar acentos e caixa", async () => {
+    const response = await request(app)
+      .get("/api/distribuidoras/resolver")
+      .query({ cidade: "Sao Paulo", uf: "sp" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.uf).toBe("SP");
+    expect(typeof response.body.data.codigo).toBe("string");
+    expect(response.body.data.codigo.length).toBeGreaterThan(0);
+  });
+
+  it("GET /api/distribuidoras/resolver deve retornar 404 para cidade sem mapeamento", async () => {
+    const response = await request(app)
+      .get("/api/distribuidoras/resolver")
+      .query({ cidade: "Cidade Inexistente", uf: "SP" });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({
+      success: false,
+      error: {
+        message: "Nao foi possivel identificar distribuidora para cidade/UF."
+      }
     });
   });
 
@@ -183,12 +224,10 @@ describe("Rotas da API", () => {
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
     expect(response.body.data.items).toHaveLength(2);
-    expect(response.body.data.pagination).toEqual({
-      page: 1,
-      limit: 2,
-      totalItems: 3,
-      totalPages: 2
-    });
+    expect(response.body.data.pagination.page).toBe(1);
+    expect(response.body.data.pagination.limit).toBe(2);
+    expect(response.body.data.pagination.totalItems).toBeGreaterThanOrEqual(3);
+    expect(response.body.data.pagination.totalPages).toBeGreaterThanOrEqual(2);
   });
 
   it("GET /api/distribuidoras com page invalida deve retornar 400", async () => {
@@ -223,23 +262,16 @@ describe("Rotas da API", () => {
     const response = await request(app).get("/api/tarifas");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      data: [
-        {
-          distribuidora: "Enel Sao Paulo",
-          tarifaKwh: 0.95
-        },
-        {
-          distribuidora: "CPFL Paulista",
-          tarifaKwh: 0.9
-        },
-        {
-          distribuidora: "Neoenergia Coelba",
-          tarifaKwh: 0.85
-        }
-      ]
-    });
+    expect(response.body.success).toBe(true);
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBeGreaterThanOrEqual(3);
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ distribuidora: "Enel Sao Paulo", tarifaKwh: 0.95 }),
+        expect.objectContaining({ distribuidora: "CPFL Paulista", tarifaKwh: 0.9 }),
+        expect.objectContaining({ distribuidora: "Neoenergia Coelba", tarifaKwh: 0.85 })
+      ])
+    );
   });
 
   it("GET /api/impostos deve retornar 200 com impostos", async () => {
@@ -325,23 +357,14 @@ describe("Rotas da API", () => {
     const response = await request(app).get("/api/tarifas");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      success: true,
-      data: [
-        {
-          distribuidora: "Enel Sao Paulo",
-          tarifaKwh: 1.2
-        },
-        {
-          distribuidora: "CPFL Paulista",
-          tarifaKwh: 0.9
-        },
-        {
-          distribuidora: "Neoenergia Coelba",
-          tarifaKwh: 0.7
-        }
-      ]
-    });
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ distribuidora: "Enel Sao Paulo", tarifaKwh: 1.2 }),
+        expect.objectContaining({ distribuidora: "CPFL Paulista", tarifaKwh: 0.9 }),
+        expect.objectContaining({ distribuidora: "Neoenergia Coelba", tarifaKwh: 0.7 })
+      ])
+    );
   });
 
   it("GET /api/calculo deve aplicar tarifa dinamica por distribuidora", async () => {
