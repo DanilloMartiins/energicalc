@@ -1,0 +1,1091 @@
+{
+  "avisoPadrao": "Esta simulacao nao considera valores adicionais como multas, juros por atraso, parcelamentos, emprestimos na fatura ou compensacoes/creditos. Caso existam, o valor real pode ser diferente.",
+  "icmsPorUf": {
+    "DEFAULT": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.25,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "DEFAULT",
+        "tipo": "percentual",
+        "valor": 0.25,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "AC": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.19,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "AC",
+        "tipo": "percentual",
+        "valor": 0.19,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "AL": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.205,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "AL",
+        "tipo": "percentual",
+        "valor": 0.205,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "AM": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "AM",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "AP": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.18,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "AP",
+        "tipo": "percentual",
+        "valor": 0.18,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "BA": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.205,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "BA",
+        "tipo": "percentual",
+        "valor": 0.205,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "CE": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "CE",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "DF": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": 500,
+        "aliquota": 0.2,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "DF",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": 500
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      },
+      {
+        "faixaKwhMin": 501,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "DF",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 501,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "ES": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": 50,
+        "aliquota": 0.12,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "ES",
+        "tipo": "percentual",
+        "valor": 0.12,
+        "faixaConsumo": {
+          "min": 0,
+          "max": 50
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      },
+      {
+        "faixaKwhMin": 51,
+        "faixaKwhMax": null,
+        "aliquota": 0.17,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "ES",
+        "tipo": "percentual",
+        "valor": 0.17,
+        "faixaConsumo": {
+          "min": 51,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "GO": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.19,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "GO",
+        "tipo": "percentual",
+        "valor": 0.19,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "MA": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.23,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "MA",
+        "tipo": "percentual",
+        "valor": 0.23,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "MG": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.18,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "MG",
+        "tipo": "percentual",
+        "valor": 0.18,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "MS": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.17,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "MS",
+        "tipo": "percentual",
+        "valor": 0.17,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "MT": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.17,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "MT",
+        "tipo": "percentual",
+        "valor": 0.17,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "PA": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.19,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "PA",
+        "tipo": "percentual",
+        "valor": 0.19,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "PB": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "PB",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "PE": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.205,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "PE",
+        "tipo": "percentual",
+        "valor": 0.205,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "PI": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.225,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "PI",
+        "tipo": "percentual",
+        "valor": 0.225,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "PR": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.195,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "PR",
+        "tipo": "percentual",
+        "valor": 0.195,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "RJ": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.22,
+        "fonteUrl": "https://portal.fazenda.rj.gov.br/pagamentos/aliquotas-internas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "RJ",
+        "tipo": "percentual",
+        "valor": 0.22,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "RN": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "RN",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "RO": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.195,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "RO",
+        "tipo": "percentual",
+        "valor": 0.195,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "RR": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "RR",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "RS": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.17,
+        "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "RS",
+        "tipo": "percentual",
+        "valor": 0.17,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "SC": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.17,
+        "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "SC",
+        "tipo": "percentual",
+        "valor": 0.17,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "SE": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "SE",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "SP": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": 200,
+        "aliquota": 0.12,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "SP",
+        "tipo": "percentual",
+        "valor": 0.12,
+        "faixaConsumo": {
+          "min": 0,
+          "max": 200
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      },
+      {
+        "faixaKwhMin": 201,
+        "faixaKwhMax": null,
+        "aliquota": 0.18,
+        "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "SP",
+        "tipo": "percentual",
+        "valor": 0.18,
+        "faixaConsumo": {
+          "min": 201,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ],
+    "TO": [
+      {
+        "faixaKwhMin": 0,
+        "faixaKwhMax": null,
+        "aliquota": 0.2,
+        "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+        "ultimaAtualizacao": "2026-04-01",
+        "uf": "TO",
+        "tipo": "percentual",
+        "valor": 0.2,
+        "faixaConsumo": {
+          "min": 0,
+          "max": null
+        },
+        "fonte": "nao_oficial",
+        "confianca": "baixa",
+        "dataReferencia": "2026-04-01",
+        "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+      }
+    ]
+  },
+  "regulatorios": [
+    {
+      "codigo": "correcao_monetaria",
+      "tipo": "regulatorio",
+      "escopo": "nacional",
+      "modelo": "percentual",
+      "ativo": false,
+      "valor": 0,
+      "baseCalculo": "subtotal_energia",
+      "fonteUrl": null,
+      "ultimaAtualizacao": null
+    },
+    {
+      "codigo": "icms_cde",
+      "tipo": "regulatorio",
+      "escopo": "nacional",
+      "modelo": "percentual",
+      "ativo": false,
+      "valor": 0,
+      "baseCalculo": "subtotal_energia",
+      "fonteUrl": null,
+      "ultimaAtualizacao": null
+    },
+    {
+      "codigo": "ipca_nf",
+      "tipo": "regulatorio",
+      "escopo": "nacional",
+      "modelo": "percentual",
+      "ativo": false,
+      "valor": 0,
+      "baseCalculo": "subtotal_energia",
+      "fonteUrl": null,
+      "ultimaAtualizacao": null
+    }
+  ],
+  "impostosMunicipais": [],
+  "icmsRegras": [
+    {
+      "uf": "DEFAULT",
+      "tipo": "percentual",
+      "valor": 0.25,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "AC",
+      "tipo": "percentual",
+      "valor": 0.19,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "AL",
+      "tipo": "percentual",
+      "valor": 0.205,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "AM",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "AP",
+      "tipo": "percentual",
+      "valor": 0.18,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "BA",
+      "tipo": "percentual",
+      "valor": 0.205,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "CE",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "DF",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": 500
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "DF",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 501,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "ES",
+      "tipo": "percentual",
+      "valor": 0.12,
+      "faixaConsumo": {
+        "min": 0,
+        "max": 50
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "ES",
+      "tipo": "percentual",
+      "valor": 0.17,
+      "faixaConsumo": {
+        "min": 51,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "GO",
+      "tipo": "percentual",
+      "valor": 0.19,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "MA",
+      "tipo": "percentual",
+      "valor": 0.23,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "MG",
+      "tipo": "percentual",
+      "valor": 0.18,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "MS",
+      "tipo": "percentual",
+      "valor": 0.17,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "MT",
+      "tipo": "percentual",
+      "valor": 0.17,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "PA",
+      "tipo": "percentual",
+      "valor": 0.19,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "PB",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "PE",
+      "tipo": "percentual",
+      "valor": 0.205,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "PI",
+      "tipo": "percentual",
+      "valor": 0.225,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "PR",
+      "tipo": "percentual",
+      "valor": 0.195,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "RJ",
+      "tipo": "percentual",
+      "valor": 0.22,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://portal.fazenda.rj.gov.br/pagamentos/aliquotas-internas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "RN",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "RO",
+      "tipo": "percentual",
+      "valor": 0.195,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "RR",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "RS",
+      "tipo": "percentual",
+      "valor": 0.17,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://simplifique.contmatic.com.br/blogs/tabela-icms-2026",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "SC",
+      "tipo": "percentual",
+      "valor": 0.17,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "SE",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "SP",
+      "tipo": "percentual",
+      "valor": 0.12,
+      "faixaConsumo": {
+        "min": 0,
+        "max": 200
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "SP",
+      "tipo": "percentual",
+      "valor": 0.18,
+      "faixaConsumo": {
+        "min": 201,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.taxgroup.com.br/intelligence/tabela-icms-2026-fique-por-dentro-das-aliquotas-estaduais-atualizadas/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    },
+    {
+      "uf": "TO",
+      "tipo": "percentual",
+      "valor": 0.2,
+      "faixaConsumo": {
+        "min": 0,
+        "max": null
+      },
+      "fonte": "nao_oficial",
+      "fonteUrl": "https://www.transp.net/blog/posts/tabela-icms-2026-aliquotas-por-estado-transportadoras/",
+      "confianca": "baixa",
+      "dataReferencia": "2026-04-01",
+      "observacao": "Base de ICMS proveniente de fonte nao oficial. Validar com a legislacao estadual vigente."
+    }
+  ]
+}

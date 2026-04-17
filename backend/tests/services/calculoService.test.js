@@ -7,16 +7,18 @@ describe("calculoService", () => {
       jest.restoreAllMocks();
     });
 
-    it("deve calcular a fatura com dados validos", () => {
+    it("deve calcular a fatura com itens detalhados e aviso", () => {
       const resultado = calculoService.calcular({
         leituraAnterior: 100,
         leituraAtual: 150,
         diasDecorridos: 30,
-        distribuidoraId: "1"
+        distribuidoraId: "ENEL_SP",
+        bandeira: "verde"
       });
 
-      expect(resultado).toEqual({
-        distribuidora: "Enel Sao Paulo",
+      expect(resultado).toMatchObject({
+        statusSimulacao: "simulado",
+        distribuidora: "Enel São Paulo",
         consumoKwh: 50,
         mediaDiaria: 1.67,
         diasDecorridos: 30,
@@ -25,23 +27,29 @@ describe("calculoService", () => {
           tipo: "verde",
           valor: 0
         },
-        icms: 11.88,
-        cip: 0,
-        total: 59.38
+        icms: 5.7,
+        cip: null,
+        cipCalculadaSeparadamente: true,
+        aviso: expect.any(String)
       });
+      expect(Array.isArray(resultado.itens)).toBe(true);
+      expect(resultado.itens.length).toBeGreaterThan(0);
+      expect(resultado.total).toBe(57.59);
     });
 
-    it("deve aceitar o codigo da distribuidora", () => {
+    it("deve aceitar cidade + uf quando distribuidoraId nao for enviado", () => {
       const resultado = calculoService.calcular({
-        leituraAnterior: 200,
-        leituraAtual: 260,
+        leituraAnterior: 100,
+        leituraAtual: 150,
         diasDecorridos: 30,
-        distribuidoraId: "ENEL_SP"
+        cidade: "Campinas",
+        uf: "SP",
+        bandeira: "verde"
       });
 
-      expect(resultado.distribuidora).toBe("Enel Sao Paulo");
-      expect(resultado.consumoKwh).toBe(60);
-      expect(resultado.total).toBe(71.25);
+      expect(resultado.distribuidora).toBe("CPFL Paulista");
+      expect(resultado.uf).toBe("SP");
+      expect(resultado.total).toBe(54.56);
     });
 
     it("deve respeitar a bandeira informada na simulacao", () => {
@@ -57,13 +65,15 @@ describe("calculoService", () => {
         tipo: "amarela",
         valor: 0.94
       });
-      expect(resultado.total).toBe(60.55);
+      expect(resultado.total).toBe(58.73);
     });
 
     it("deve usar tarifa dinamica quando houver valor vigente para distribuidora", () => {
       jest.spyOn(tarifasService, "obterTarifaVigentePorDistribuidora").mockReturnValue({
         sigAgente: "ENEL SP",
         tarifaKwh: 1.2,
+        teKwh: 0.3,
+        tusdKwh: 0.9,
         dataInicioVigencia: Date.now(),
         fonte: "aneel"
       });
@@ -77,7 +87,13 @@ describe("calculoService", () => {
       });
 
       expect(resultado.valorEnergia).toBe(60);
-      expect(resultado.total).toBe(75);
+      expect(resultado.total).toBe(72.75);
+      expect(resultado.itens).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ codigo: "te", valor: 15 }),
+          expect.objectContaining({ codigo: "tusd", valor: 45 })
+        ])
+      );
     });
 
     it("deve retornar erro 404 para distribuidora inexistente", () => {
@@ -88,7 +104,8 @@ describe("calculoService", () => {
           leituraAnterior: 100,
           leituraAtual: 150,
           diasDecorridos: 30,
-          distribuidoraId: "9999"
+          distribuidoraId: "999",
+          bandeira: "verde"
         });
       } catch (error) {
         erro = error;
@@ -107,7 +124,7 @@ describe("calculoService", () => {
           leituraAnterior: 100,
           leituraAtual: 150,
           diasDecorridos: 30,
-          distribuidoraId: "1",
+          distribuidoraId: "ENEL_SP",
           bandeira: "azul"
         });
       } catch (error) {

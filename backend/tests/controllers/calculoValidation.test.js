@@ -12,35 +12,31 @@ describe("Validacao do endpoint /api/calculo", () => {
     global.fetch = fetchOriginal;
   });
 
-  it("deve retornar 400 quando faltam parametros obrigatorios", async () => {
-    const response = await request(app)
-      .get("/api/calculo")
-      .query({
-        leituraAnterior: 100,
-        leituraAtual: 150,
-        diasDecorridos: 30,
-        distribuidoraId: 1
-      });
+  it("deve retornar 400 quando faltar bandeira", async () => {
+    const response = await request(app).get("/api/calculo").query({
+      leituraAnterior: 100,
+      leituraAtual: 150,
+      diasDecorridos: 30,
+      distribuidoraId: "ENEL_SP"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
+        message: "Informe bandeira para calcular."
       }
     });
   });
 
   it("deve retornar 400 para valores nao numericos", async () => {
-    const response = await request(app)
-      .get("/api/calculo")
-      .query({
-        leituraAnterior: "abc",
-        leituraAtual: 150,
-        diasDecorridos: 30,
-        distribuidoraId: 1,
-        bandeira: "verde"
-      });
+    const response = await request(app).get("/api/calculo").query({
+      leituraAnterior: "abc",
+      leituraAtual: 150,
+      diasDecorridos: 30,
+      distribuidoraId: "ENEL_SP",
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -52,15 +48,13 @@ describe("Validacao do endpoint /api/calculo", () => {
   });
 
   it("deve retornar 400 para valores menores ou iguais a zero", async () => {
-    const response = await request(app)
-      .get("/api/calculo")
-      .query({
-        leituraAnterior: 0,
-        leituraAtual: 150,
-        diasDecorridos: 30,
-        distribuidoraId: 1,
-        bandeira: "verde"
-      });
+    const response = await request(app).get("/api/calculo").query({
+      leituraAnterior: 0,
+      leituraAtual: 150,
+      diasDecorridos: 30,
+      distribuidoraId: "ENEL_SP",
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -72,15 +66,13 @@ describe("Validacao do endpoint /api/calculo", () => {
   });
 
   it("deve retornar 400 para distribuidora invalida", async () => {
-    const response = await request(app)
-      .get("/api/calculo")
-      .query({
-        leituraAnterior: 100,
-        leituraAtual: 150,
-        diasDecorridos: 30,
-        distribuidoraId: 999,
-        bandeira: "verde"
-      });
+    const response = await request(app).get("/api/calculo").query({
+      leituraAnterior: 100,
+      leituraAtual: 150,
+      diasDecorridos: 30,
+      distribuidoraId: 999,
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -92,15 +84,13 @@ describe("Validacao do endpoint /api/calculo", () => {
   });
 
   it("deve retornar 400 para bandeira invalida", async () => {
-    const response = await request(app)
-      .get("/api/calculo")
-      .query({
-        leituraAnterior: 100,
-        leituraAtual: 150,
-        diasDecorridos: 30,
-        distribuidoraId: 1,
-        bandeira: "azul"
-      });
+    const response = await request(app).get("/api/calculo").query({
+      leituraAnterior: 100,
+      leituraAtual: 150,
+      diasDecorridos: 30,
+      distribuidoraId: "ENEL_SP",
+      bandeira: "azul"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
@@ -110,30 +100,27 @@ describe("Validacao do endpoint /api/calculo", () => {
 
 describe("Validacao do endpoint POST /api/calculo", () => {
   it("deve retornar 400 quando faltam campos obrigatorios no body", async () => {
-    const response = await request(app)
-      .post("/api/calculo")
-      .send({
-        consumo: 250,
-        distribuidora: "Enel Sao Paulo"
-      });
+    const response = await request(app).post("/api/calculo").send({
+      consumo: 250,
+      distribuidora: "Enel SÃ£o Paulo"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "Informe consumo, nome da distribuidora e bandeira."
+        message:
+          "Informe consumo e bandeira. Distribuidora pode ser informada por nome ou cidade+uf."
       }
     });
   });
 
   it("deve retornar 400 quando consumo nao e numerico", async () => {
-    const response = await request(app)
-      .post("/api/calculo")
-      .send({
-        consumo: "abc",
-        distribuidora: "Enel Sao Paulo",
-        bandeira: "verde"
-      });
+    const response = await request(app).post("/api/calculo").send({
+      consumo: "abc",
+      distribuidora: "Enel SÃ£o Paulo",
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -145,13 +132,11 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   });
 
   it("deve retornar 400 quando consumo e menor ou igual a zero", async () => {
-    const response = await request(app)
-      .post("/api/calculo")
-      .send({
-        consumo: 0,
-        distribuidora: "Enel Sao Paulo",
-        bandeira: "verde"
-      });
+    const response = await request(app).post("/api/calculo").send({
+      consumo: 0,
+      distribuidora: "Enel SÃ£o Paulo",
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -163,13 +148,11 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   });
 
   it("deve retornar 400 para distribuidora invalida no body", async () => {
-    const response = await request(app)
-      .post("/api/calculo")
-      .send({
-        consumo: 250,
-        distribuidora: "Celpe",
-        bandeira: "verde"
-      });
+    const response = await request(app).post("/api/calculo").send({
+      consumo: 250,
+      distribuidora: "Celpe",
+      bandeira: "verde"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body).toEqual({
@@ -181,13 +164,11 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   });
 
   it("deve retornar 400 para bandeira invalida no body", async () => {
-    const response = await request(app)
-      .post("/api/calculo")
-      .send({
-        consumo: 250,
-        distribuidora: "Enel Sao Paulo",
-        bandeira: "azul"
-      });
+    const response = await request(app).post("/api/calculo").send({
+      consumo: 250,
+      distribuidora: "Enel SÃ£o Paulo",
+      bandeira: "azul"
+    });
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);

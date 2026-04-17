@@ -1,6 +1,6 @@
-const distribuidorasData = require("../data/distribuidorasData");
+const distribuidorasService = require("./distribuidorasService");
+const billingService = require("./billingService");
 const bandeiraData = require("../data/bandeiraData");
-const tarifasService = require("./tarifasService");
 const { hasRequiredFields } = require("../utils/validation");
 const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 
@@ -11,16 +11,14 @@ function criarErro(status, error, message) {
   return erro;
 }
 
-function arredondar(valor) {
-  return Number(valor.toFixed(2));
-}
-
 function normalizarParametros(
   leituraAnterior,
   leituraAtual,
   diasDecorridos,
   distribuidoraId,
-  bandeira
+  bandeira,
+  cidade,
+  uf
 ) {
   if (typeof leituraAnterior === "object" && leituraAnterior !== null) {
     return {
@@ -28,7 +26,9 @@ function normalizarParametros(
       leituraAtual: leituraAnterior.leituraAtual,
       diasDecorridos: leituraAnterior.diasDecorridos,
       distribuidoraId: leituraAnterior.distribuidoraId,
-      bandeira: leituraAnterior.bandeira
+      bandeira: leituraAnterior.bandeira,
+      cidade: leituraAnterior.cidade,
+      uf: leituraAnterior.uf
     };
   }
 
@@ -37,35 +37,49 @@ function normalizarParametros(
     leituraAtual,
     diasDecorridos,
     distribuidoraId,
-    bandeira
+    bandeira,
+    cidade,
+    uf
   };
 }
 
-function validarEntradas({
-  leituraAnterior,
-  leituraAtual,
-  diasDecorridos,
-  distribuidoraId
-}) {
+function validarBandeiraInformada(bandeiraInformada) {
+  const bandeiraAtual = bandeiraData.getBandeiraAtual();
+  const valoresKwh = bandeiraAtual.valoresKwh || {};
+  const bandeiraNormalizada = String(bandeiraInformada || "").trim().toLowerCase();
+
+  if (!bandeiraNormalizada) {
+    return;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(valoresKwh, bandeiraNormalizada)) {
+    throw criarErro(400, "Invalid input", "Bandeira informada nao existe.");
+  }
+}
+
+function validarEntradas(params) {
+  const leituraAnteriorNumero = toNumber(params.leituraAnterior);
+  const leituraAtualNumero = toNumber(params.leituraAtual);
+  const diasDecorridosNumero = toNumber(params.diasDecorridos);
+  const distribuidoraIdNormalizado = String(params.distribuidoraId || "").trim();
+  const cidadeNormalizada = String(params.cidade || "").trim();
+  const ufNormalizada = String(params.uf || "")
+    .trim()
+    .toUpperCase();
+
+  const usaDistribuidoraId = Boolean(distribuidoraIdNormalizado);
+  const usaCidadeUf = Boolean(cidadeNormalizada && ufNormalizada);
+
   if (
-    !hasRequiredFields([
-      leituraAnterior,
-      leituraAtual,
-      diasDecorridos,
-      distribuidoraId
-    ])
+    !hasRequiredFields([leituraAnteriorNumero, leituraAtualNumero, diasDecorridosNumero]) ||
+    (!usaDistribuidoraId && !usaCidadeUf)
   ) {
     throw criarErro(
       400,
       "Invalid input",
-      "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
+      "Informe leitura anterior, leitura atual, dias decorridos e distribuidoraId ou cidade+uf."
     );
   }
-
-  const leituraAnteriorNumero = toNumber(leituraAnterior);
-  const leituraAtualNumero = toNumber(leituraAtual);
-  const diasDecorridosNumero = toNumber(diasDecorridos);
-  const distribuidoraIdNormalizado = String(distribuidoraId).trim();
 
   if (
     !isValidNumber(leituraAnteriorNumero) ||
@@ -80,146 +94,42 @@ function validarEntradas({
   }
 
   if (leituraAtualNumero <= leituraAnteriorNumero) {
-    throw criarErro(
-      400,
-      "Invalid input",
-      "leitura atual deve ser maior que leitura anterior."
-    );
+    throw criarErro(400, "Invalid input", "leitura atual deve ser maior que leitura anterior.");
   }
 
   if (!isPositive(diasDecorridosNumero)) {
-    throw criarErro(
-      400,
-      "Invalid input",
-      "dias decorridos deve ser maior que zero."
-    );
+    throw criarErro(400, "Invalid input", "dias decorridos deve ser maior que zero.");
   }
+
+  validarBandeiraInformada(params.bandeira);
 
   return {
     leituraAnterior: leituraAnteriorNumero,
     leituraAtual: leituraAtualNumero,
     diasDecorridos: diasDecorridosNumero,
-    distribuidoraId: distribuidoraIdNormalizado
+    distribuidoraId: distribuidoraIdNormalizado,
+    bandeira: String(params.bandeira || "").trim().toLowerCase(),
+    cidade: cidadeNormalizada,
+    uf: ufNormalizada
   };
 }
 
-function obterDistribuidora(distribuidoraId) {
-  const distribuidora = distribuidorasData.getDistribuidoraById(distribuidoraId);
-
-  if (!distribuidora) {
-    throw criarErro(404, "Not found", "Distribuidora nao encontrada.");
+function obterDistribuidora({ distribuidoraId, cidade, uf }) {
+  if (distribuidoraId) {
+    const porId = distribuidorasService.obterDistribuidoraPorId(distribuidoraId);
+    if (porId) {
+      return porId;
+    }
   }
 
-  return distribuidora;
-}
-
-function obterTarifaDistribuidora(distribuidora) {
-  const tarifaVigente = tarifasService.obterTarifaVigentePorDistribuidora(
-    distribuidora.codigo
-  );
-  const tarifaDinamica = tarifaVigente && tarifaVigente.tarifaKwh;
-  const tarifa = toNumber(
-    tarifaDinamica ?? distribuidora.tarifa ?? distribuidora.tarifaBaseKwh ?? 0.82
-  );
-
-  if (!isValidNumber(tarifa) || tarifa < 0) {
-    throw criarErro(
-      500,
-      "Internal server error",
-      "Tarifa da distribuidora invalida nos dados."
-    );
+  if (cidade && uf) {
+    const porCidadeUf = distribuidorasService.obterDistribuidoraPorCidadeUf(cidade, uf);
+    if (porCidadeUf) {
+      return porCidadeUf;
+    }
   }
 
-  return tarifa;
-}
-
-function obterBandeiraSelecionada(tipoInformado) {
-  const bandeiraAtual = bandeiraData.getBandeiraAtual();
-  const valoresKwh = bandeiraAtual.valoresKwh || {};
-  const tipoNormalizado = String(tipoInformado || "").trim().toLowerCase();
-  const tipoSelecionado = tipoNormalizado || bandeiraAtual.vigente;
-
-  if (
-    tipoNormalizado &&
-    !Object.prototype.hasOwnProperty.call(valoresKwh, tipoNormalizado)
-  ) {
-    throw criarErro(400, "Invalid input", "Bandeira informada nao existe.");
-  }
-
-  const valor = toNumber(valoresKwh[tipoSelecionado]);
-
-  if (!tipoSelecionado || !isValidNumber(valor)) {
-    throw criarErro(
-      500,
-      "Internal server error",
-      "Bandeira tarifaria invalida nos dados."
-    );
-  }
-
-  return { tipo: tipoSelecionado, valor };
-}
-
-function calcularConsumo(leituraAnterior, leituraAtual) {
-  return leituraAtual - leituraAnterior;
-}
-
-function calcularMediaDiaria(consumoKwh, diasDecorridos) {
-  return arredondar(consumoKwh / diasDecorridos);
-}
-
-function calcularValorEnergia(consumoKwh, distribuidora) {
-  const tarifa = obterTarifaDistribuidora(distribuidora);
-  return arredondar(consumoKwh * tarifa);
-}
-
-function calcularBandeira(consumoKwh, tipoBandeira) {
-  const bandeira = obterBandeiraSelecionada(tipoBandeira);
-  const valor = arredondar(consumoKwh * bandeira.valor);
-
-  return {
-    tipo: bandeira.tipo,
-    valor
-  };
-}
-
-function calcularSubtotal(valorEnergia, valorBandeira) {
-  return arredondar(valorEnergia + valorBandeira);
-}
-
-function calcularIcms(subtotal) {
-  return arredondar(subtotal * 0.25);
-}
-
-function calcularCip(distribuidora) {
-  return arredondar(Number(distribuidora.cip || 0));
-}
-
-function calcularTotal(subtotal, icms, cip) {
-  return arredondar(subtotal + icms + cip);
-}
-
-function montarResposta({
-  distribuidora,
-  consumoKwh,
-  mediaDiaria,
-  diasDecorridos,
-  valorEnergia,
-  bandeira,
-  icms,
-  cip,
-  total
-}) {
-  return {
-    distribuidora: distribuidora.nome,
-    consumoKwh,
-    mediaDiaria,
-    diasDecorridos,
-    valorEnergia,
-    bandeira,
-    icms,
-    cip,
-    total
-  };
+  throw criarErro(404, "Not found", "Distribuidora nao encontrada.");
 }
 
 function calcular(
@@ -227,44 +137,30 @@ function calcular(
   leituraAtual,
   diasDecorridos,
   distribuidoraId,
-  bandeira
+  bandeira,
+  cidade,
+  uf
 ) {
   const params = normalizarParametros(
     leituraAnterior,
     leituraAtual,
     diasDecorridos,
     distribuidoraId,
-    bandeira
+    bandeira,
+    cidade,
+    uf
   );
+  const entradasValidadas = validarEntradas(params);
+  const distribuidora = obterDistribuidora(entradasValidadas);
 
-  const entradasValidadas = validarEntradas({
-    leituraAnterior: params.leituraAnterior,
-    leituraAtual: params.leituraAtual,
-    diasDecorridos: params.diasDecorridos,
-    distribuidoraId: params.distribuidoraId
-  });
-
-  const distribuidora = obterDistribuidora(entradasValidadas.distribuidoraId);
-
-  const consumoKwh = calcularConsumo(entradasValidadas.leituraAnterior, entradasValidadas.leituraAtual);
-  const mediaDiaria = calcularMediaDiaria(consumoKwh, entradasValidadas.diasDecorridos);
-  const valorEnergia = calcularValorEnergia(consumoKwh, distribuidora);
-  const bandeiraCalculada = calcularBandeira(consumoKwh, params.bandeira);
-  const subtotal = calcularSubtotal(valorEnergia, bandeiraCalculada.valor);
-  const icms = calcularIcms(subtotal);
-  const cip = calcularCip(distribuidora);
-  const total = calcularTotal(subtotal, icms, cip);
-
-  return montarResposta({
-    distribuidora,
-    consumoKwh,
-    mediaDiaria,
+  return billingService.calcularFatura({
+    leituraAnterior: entradasValidadas.leituraAnterior,
+    leituraAtual: entradasValidadas.leituraAtual,
     diasDecorridos: entradasValidadas.diasDecorridos,
-    valorEnergia,
-    bandeira: bandeiraCalculada,
-    icms,
-    cip,
-    total
+    bandeira: entradasValidadas.bandeira,
+    cidade: entradasValidadas.cidade,
+    uf: entradasValidadas.uf || distribuidora.uf,
+    distribuidora
   });
 }
 

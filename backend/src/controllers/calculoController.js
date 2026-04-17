@@ -4,6 +4,7 @@ const bandeiraService = require("../services/bandeiraService");
 const { hasRequiredFields } = require("../utils/validation");
 const { toNumber, isValidNumber, isPositive } = require("../utils/number");
 const { sendSuccess, sendError } = require("../utils/response");
+
 const DIAS_PADRAO_POST = 30;
 
 function respostaErro400(res, mensagem) {
@@ -11,7 +12,7 @@ function respostaErro400(res, mensagem) {
 }
 
 function bandeiraEhValida(bandeira) {
-  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
+  const bandeiraNormalizada = String(bandeira || "").trim().toLowerCase();
   const bandeirasValidas = bandeiraService.listarTiposBandeira();
 
   return {
@@ -20,28 +21,9 @@ function bandeiraEhValida(bandeira) {
   };
 }
 
-async function calcular(req, res) {
-  const {
-    leituraAnterior,
-    leituraAtual,
-    diasDecorridos,
-    distribuidoraId,
-    bandeira
-  } = req.query;
-
-  if (
-    !hasRequiredFields([
-      leituraAnterior,
-      leituraAtual,
-      diasDecorridos,
-      distribuidoraId,
-      bandeira
-    ])
-  ) {
-    return respostaErro400(
-      res,
-      "Informe leitura anterior, leitura atual, dias decorridos e nome da distribuidora."
-    );
+function validarLeiturasGet(leituraAnterior, leituraAtual, diasDecorridos) {
+  if (!hasRequiredFields([leituraAnterior, leituraAtual, diasDecorridos])) {
+    return "Informe leitura anterior, leitura atual e dias decorridos.";
   }
 
   const leituraAnteriorNumero = toNumber(leituraAnterior);
@@ -53,10 +35,7 @@ async function calcular(req, res) {
     !isValidNumber(leituraAtualNumero) ||
     !isValidNumber(diasDecorridosNumero)
   ) {
-    return respostaErro400(
-      res,
-      "leitura anterior, leitura atual e dias decorridos devem ser numeros validos."
-    );
+    return "leitura anterior, leitura atual e dias decorridos devem ser numeros validos.";
   }
 
   if (
@@ -64,27 +43,73 @@ async function calcular(req, res) {
     !isPositive(leituraAtualNumero) ||
     !isPositive(diasDecorridosNumero)
   ) {
-    return respostaErro400(
-      res,
-      "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero."
-    );
+    return "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero.";
   }
 
   if (leituraAtualNumero <= leituraAnteriorNumero) {
-    return respostaErro400(res, "leitura atual deve ser maior que leitura anterior.");
+    return "leitura atual deve ser maior que leitura anterior.";
   }
 
-  const distribuidoraIdNormalizado = String(distribuidoraId).trim();
-  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
-  const distribuidoraEncontrada =
-    distribuidorasService.obterDistribuidoraPorId(distribuidoraIdNormalizado);
+  return "";
+}
 
-  if (!distribuidoraEncontrada) {
-    return respostaErro400(res, "Distribuidora informada nao existe.");
+function validarOrigemDistribuidora(distribuidoraId, cidade, uf) {
+  const idNormalizado = String(distribuidoraId || "").trim();
+  const cidadeNormalizada = String(cidade || "").trim();
+  const ufNormalizada = String(uf || "")
+    .trim()
+    .toUpperCase();
+
+  const usaId = Boolean(idNormalizado);
+  const usaCidadeUf = Boolean(cidadeNormalizada && ufNormalizada);
+
+  if (!usaId && !usaCidadeUf) {
+    return {
+      valido: false,
+      mensagem: "Informe distribuidoraId ou cidade+uf para calcular."
+    };
+  }
+
+  if (usaId) {
+    const distribuidora = distribuidorasService.obterDistribuidoraPorId(idNormalizado);
+
+    if (!distribuidora) {
+      return {
+        valido: false,
+        mensagem: "Distribuidora informada nao existe."
+      };
+    }
+  }
+
+  if (usaCidadeUf && ufNormalizada.length !== 2) {
+    return {
+      valido: false,
+      mensagem: "uf deve ter 2 caracteres."
+    };
+  }
+
+  return { valido: true };
+}
+
+async function calcular(req, res) {
+  const { leituraAnterior, leituraAtual, diasDecorridos, distribuidoraId, bandeira, cidade, uf } =
+    req.query;
+
+  const erroLeituras = validarLeiturasGet(leituraAnterior, leituraAtual, diasDecorridos);
+  if (erroLeituras) {
+    return respostaErro400(res, erroLeituras);
+  }
+
+  if (!hasRequiredFields([bandeira])) {
+    return respostaErro400(res, "Informe bandeira para calcular.");
+  }
+
+  const validacaoOrigem = validarOrigemDistribuidora(distribuidoraId, cidade, uf);
+  if (!validacaoOrigem.valido) {
+    return respostaErro400(res, validacaoOrigem.mensagem);
   }
 
   const validacaoBandeira = bandeiraEhValida(bandeira);
-
   if (!validacaoBandeira.valida) {
     return respostaErro400(
       res,
@@ -94,11 +119,15 @@ async function calcular(req, res) {
 
   try {
     const resultado = calculoService.calcular({
-      leituraAnterior: leituraAnteriorNumero,
-      leituraAtual: leituraAtualNumero,
-      diasDecorridos: diasDecorridosNumero,
-      distribuidoraId: distribuidoraIdNormalizado,
-      bandeira: bandeiraNormalizada
+      leituraAnterior: toNumber(leituraAnterior),
+      leituraAtual: toNumber(leituraAtual),
+      diasDecorridos: toNumber(diasDecorridos),
+      distribuidoraId: String(distribuidoraId || "").trim(),
+      bandeira: String(bandeira || "").trim().toLowerCase(),
+      cidade: String(cidade || "").trim(),
+      uf: String(uf || "")
+        .trim()
+        .toUpperCase()
     });
 
     return sendSuccess(res, 200, resultado);
@@ -114,15 +143,16 @@ async function calcular(req, res) {
 }
 
 async function calcularPost(req, res) {
-  const { consumo, distribuidora, bandeira } = req.body || {};
+  const { consumo, distribuidora, bandeira, cidade, uf } = req.body || {};
 
-  if (!hasRequiredFields([consumo, distribuidora, bandeira])) {
-    return respostaErro400(res, "Informe consumo, nome da distribuidora e bandeira.");
+  if (!hasRequiredFields([consumo, bandeira])) {
+    return respostaErro400(
+      res,
+      "Informe consumo e bandeira. Distribuidora pode ser informada por nome ou cidade+uf."
+    );
   }
 
   const consumoNumero = toNumber(consumo);
-  const bandeiraNormalizada = String(bandeira).trim().toLowerCase();
-
   if (!isValidNumber(consumoNumero)) {
     return respostaErro400(res, "consumo deve ser um numero valido.");
   }
@@ -131,16 +161,7 @@ async function calcularPost(req, res) {
     return respostaErro400(res, "consumo deve ser maior que zero.");
   }
 
-  const distribuidoraNormalizada = String(distribuidora).trim();
-  const distribuidoraEncontrada =
-    distribuidorasService.obterDistribuidoraPorNome(distribuidoraNormalizada);
-
-  if (!distribuidoraEncontrada) {
-    return respostaErro400(res, "Distribuidora informada nao existe.");
-  }
-
   const validacaoBandeira = bandeiraEhValida(bandeira);
-
   if (!validacaoBandeira.valida) {
     return respostaErro400(
       res,
@@ -148,17 +169,33 @@ async function calcularPost(req, res) {
     );
   }
 
+  const distribuidoraPorNome = String(distribuidora || "").trim()
+    ? distribuidorasService.obterDistribuidoraPorNome(String(distribuidora).trim())
+    : null;
+  const distribuidoraPorCidadeUf =
+    String(cidade || "").trim() && String(uf || "").trim()
+      ? distribuidorasService.obterDistribuidoraPorCidadeUf(
+          String(cidade).trim(),
+          String(uf).trim().toUpperCase()
+        )
+      : null;
+  const distribuidoraResolvida = distribuidoraPorNome || distribuidoraPorCidadeUf;
+
+  if (!distribuidoraResolvida) {
+    return respostaErro400(res, "Distribuidora informada nao existe.");
+  }
+
   try {
-    // O service atual trabalha com leituraAnterior, leituraAtual e diasDecorridos.
-    // No POST, como recebemos apenas o consumo, fazemos uma adaptacao simples:
-    // leituraAnterior = 0, leituraAtual = consumo e diasDecorridos = 30.
-    // Futuramente, este mapeamento pode ser evoluido conforme novas regras do negocio.
     const resultado = calculoService.calcular({
       leituraAnterior: 0,
       leituraAtual: consumoNumero,
       diasDecorridos: DIAS_PADRAO_POST,
-      distribuidoraId: distribuidoraEncontrada.codigo,
-      bandeira: bandeiraNormalizada
+      distribuidoraId: distribuidoraResolvida.codigo,
+      bandeira: String(bandeira).trim().toLowerCase(),
+      cidade: String(cidade || "").trim(),
+      uf: String(uf || "")
+        .trim()
+        .toUpperCase()
     });
 
     return sendSuccess(res, 200, resultado);

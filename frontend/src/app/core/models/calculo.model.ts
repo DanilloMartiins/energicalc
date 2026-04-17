@@ -15,6 +15,7 @@ export interface CalculoGetPayload {
 }
 
 export interface ResultadoCalculo {
+  statusSimulacao: string;
   distribuidora: string;
   consumoKwh: number;
   mediaDiaria: number;
@@ -25,6 +26,8 @@ export interface ResultadoCalculo {
     valor: number;
   };
   icms: number;
-  cip: number;
+  cip: number | null;
+  cipCalculadaSeparadamente: boolean;
   total: number;
+  aviso: string;
 }

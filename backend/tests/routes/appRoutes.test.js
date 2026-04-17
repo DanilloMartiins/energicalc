@@ -46,14 +46,14 @@ describe("Rotas da API", () => {
     });
   });
 
-  it("GET /api/calculo valido deve retornar 200", async () => {
+  it("GET /api/calculo válido deve retornar 200", async () => {
     const response = await request(app)
       .get("/api/calculo")
       .query({
         leituraAnterior: 100,
         leituraAtual: 150,
         diasDecorridos: 30,
-        distribuidoraId: 1,
+        distribuidoraId: "ENEL_SP",
         bandeira: "verde"
       });
 
@@ -61,9 +61,13 @@ describe("Rotas da API", () => {
     expect(response.body).toMatchObject({
       success: true,
       data: {
-        distribuidora: "Enel Sao Paulo",
+        distribuidora: "Enel São Paulo",
         consumoKwh: 50,
-        total: 59.38
+        statusSimulacao: "simulado",
+        cip: null,
+        cipCalculadaSeparadamente: true,
+        total: 57.59,
+        aviso: expect.any(String)
       }
     });
   });
@@ -75,7 +79,7 @@ describe("Rotas da API", () => {
         leituraAnterior: 100,
         leituraAtual: 150,
         diasDecorridos: 30,
-        distribuidoraId: 1,
+        distribuidoraId: "ENEL_SP",
         bandeira: "amarela"
       });
 
@@ -87,19 +91,19 @@ describe("Rotas da API", () => {
           tipo: "amarela",
           valor: 0.94
         },
-        total: 60.55
+        total: 58.73
       }
     });
   });
 
-  it("GET /api/calculo invalido deve retornar 400", async () => {
+  it("GET /api/calculo inválido deve retornar 400", async () => {
     const response = await request(app)
       .get("/api/calculo")
       .query({
         leituraAnterior: 100,
         leituraAtual: 150,
         diasDecorridos: 0,
-        distribuidoraId: 1,
+        distribuidoraId: "ENEL_SP",
         bandeira: "verde"
       });
 
@@ -211,7 +215,7 @@ describe("Rotas da API", () => {
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "Nao foi possivel identificar distribuidora para cidade/UF."
+        message: "N\u00E3o foi poss\u00EDvel identificar distribuidora para cidade/UF."
       }
     });
   });
@@ -230,7 +234,7 @@ describe("Rotas da API", () => {
     expect(response.body.data.pagination.totalPages).toBeGreaterThanOrEqual(2);
   });
 
-  it("GET /api/distribuidoras com page invalida deve retornar 400", async () => {
+  it("GET /api/distribuidoras com page inválida deve retornar 400", async () => {
     const response = await request(app)
       .get("/api/distribuidoras")
       .query({ page: 0, limit: 10 });
@@ -239,12 +243,12 @@ describe("Rotas da API", () => {
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "page deve ser um numero maior que zero."
+        message: "page deve ser um número maior que zero."
       }
     });
   });
 
-  it("GET /api/distribuidoras com limit invalido deve retornar 400", async () => {
+  it("GET /api/distribuidoras com limit inválido deve retornar 400", async () => {
     const response = await request(app)
       .get("/api/distribuidoras")
       .query({ page: 1, limit: "abc" });
@@ -253,7 +257,7 @@ describe("Rotas da API", () => {
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "limit deve ser um numero maior que zero."
+        message: "limit deve ser um número maior que zero."
       }
     });
   });
@@ -267,7 +271,7 @@ describe("Rotas da API", () => {
     expect(response.body.data.length).toBeGreaterThanOrEqual(3);
     expect(response.body.data).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ distribuidora: "Enel Sao Paulo", tarifaKwh: 0.95 }),
+        expect.objectContaining({ distribuidora: "Enel São Paulo", tarifaKwh: 0.95 }),
         expect.objectContaining({ distribuidora: "CPFL Paulista", tarifaKwh: 0.9 }),
         expect.objectContaining({ distribuidora: "Neoenergia Coelba", tarifaKwh: 0.85 })
       ])
@@ -303,12 +307,12 @@ describe("Rotas da API", () => {
     expect(duracaoMs).toBeLessThan(2000);
   });
 
-  it("POST /api/calculo valido deve retornar 200", async () => {
+  it("POST /api/calculo válido deve retornar 200", async () => {
     const response = await request(app)
       .post("/api/calculo")
       .send({
         consumo: 250,
-        distribuidora: "Enel Sao Paulo",
+        distribuidora: "Enel São Paulo",
         bandeira: "verde"
       });
 
@@ -316,19 +320,19 @@ describe("Rotas da API", () => {
     expect(response.body).toMatchObject({
       success: true,
       data: {
-        distribuidora: "Enel Sao Paulo",
+        distribuidora: "Enel São Paulo",
         consumoKwh: 250,
-        total: 296.88
+        total: 302.22
       }
     });
   });
 
-  it("POST /api/calculo invalido deve retornar 400", async () => {
+  it("POST /api/calculo inválido deve retornar 400", async () => {
     const response = await request(app)
       .post("/api/calculo")
       .send({
         consumo: -10,
-        distribuidora: "Enel Sao Paulo",
+        distribuidora: "Enel São Paulo",
         bandeira: "verde"
       });
 
@@ -360,7 +364,7 @@ describe("Rotas da API", () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ distribuidora: "Enel Sao Paulo", tarifaKwh: 1.2 }),
+        expect.objectContaining({ distribuidora: "Enel São Paulo", tarifaKwh: 1.2 }),
         expect.objectContaining({ distribuidora: "CPFL Paulista", tarifaKwh: 0.9 }),
         expect.objectContaining({ distribuidora: "Neoenergia Coelba", tarifaKwh: 0.7 })
       ])
@@ -402,9 +406,9 @@ describe("Rotas da API", () => {
     expect(enel.status).toBe(200);
     expect(cpfl.status).toBe(200);
     expect(enel.body.data.valorEnergia).toBe(60);
-    expect(enel.body.data.total).toBe(75);
+    expect(enel.body.data.total).toBe(72.75);
     expect(cpfl.body.data.valorEnergia).toBe(45);
-    expect(cpfl.body.data.total).toBe(56.25);
+    expect(cpfl.body.data.total).toBe(54.56);
   });
 
   it("GET /api/calculo nao deve bloquear quando sincronizacao ANEEL estiver lenta", async () => {
@@ -429,15 +433,16 @@ describe("Rotas da API", () => {
     expect(duracaoMs).toBeLessThan(2000);
   });
 
-  it("rota nao encontrada deve retornar 404", async () => {
+  it("rota não encontrada deve retornar 404", async () => {
     const response = await request(app).get("/rota-que-nao-existe");
 
     expect(response.status).toBe(404);
     expect(response.body).toEqual({
       success: false,
       error: {
-        message: "Rota nao encontrada."
+        message: "Rota não encontrada."
       }
     });
   });
 });
+
