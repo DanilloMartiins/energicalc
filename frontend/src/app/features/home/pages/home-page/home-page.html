@@ -8,7 +8,7 @@
     </p>
   </header>
 
-  <p class="status loading" *ngIf="carregando">Carregando resumo da aplicacao...</p>
+  <p class="status loading" *ngIf="carregando">Carregando resumo da aplicação...</p>
   <p class="status error" *ngIf="erro">{{ erro }}</p>
 
   <section class="stats">
@@ -21,7 +21,7 @@
     <article class="card accent">
       <span class="label">Distribuidoras</span>
       <strong>{{ totalDistribuidoras === null ? '---' : totalDistribuidoras }}</strong>
-      <span class="hint">Disponiveis na API</span>
+      <span class="hint">Disponíveis na API</span>
     </article>
 
     <article class="card">
@@ -31,13 +31,13 @@
     </article>
 
     <article class="card">
-      <span class="label">Tarifa media</span>
+      <span class="label">Tarifa média</span>
       <strong>{{ mediaTarifaKwh === null ? '---' : 'R$ ' + (mediaTarifaKwh | number: '1.2-4') }}</strong>
-      <span class="hint">Media de tarifa por kWh</span>
+      <span class="hint">Média de tarifa por kWh</span>
     </article>
 
     <article class="card">
-      <span class="label">Carga tributaria</span>
+      <span class="label">Carga tributária</span>
       <strong *ngIf="impostos; else cargaIndisponivel">
         {{ impostos.icms * 100 | number: '1.0-2' }}% ICMS
       </strong>
@@ -49,14 +49,14 @@
         {{ impostos.cofins * 100 | number: '1.0-2' }}%
       </span>
       <ng-template #cargaHintIndisponivel>
-        <span class="hint">Dados tributarios indisponiveis no momento.</span>
+        <span class="hint">Dados tributários indisponíveis no momento.</span>
       </ng-template>
     </article>
 
     <article class="card">
       <span class="label">Fluxo principal</span>
       <strong>Simulador</strong>
-      <span class="hint">Calculo da fatura via frontend</span>
+      <span class="hint">Cálculo da fatura via frontend</span>
     </article>
   </section>
 
@@ -77,8 +77,8 @@
 
   <section class="card shortcuts">
     <div class="section-title">
-      <h3>Atalhos Rapidos</h3>
-      <p>Abra telas com filtros prontos para ganhar velocidade na analise.</p>
+      <h3>Atalhos Rápidos</h3>
+      <p>Abra telas com filtros prontos para ganhar velocidade na análise.</p>
     </div>
 
     <div class="shortcut-grid">

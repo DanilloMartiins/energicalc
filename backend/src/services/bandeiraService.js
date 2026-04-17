@@ -19,7 +19,7 @@ async function sincronizarBandeiraAtual(force = false) {
 
 function sincronizarBandeiraAtualEmBackground(force = false) {
   bandeiraData.syncBandeiraAtual(force).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 
@@ -38,7 +38,7 @@ function identificarUltimaPublicacaoJaPersistida() {
       return ultimaPublicacao.timestampInicioDia;
     }
   } catch (error) {
-    // Se o arquivo nao existir ou falhar leitura, mantemos comportamento padrao.
+    // Se o arquivo não existir ou falhar leitura, mantemos comportamento padrão.
   }
 
   return 0;
@@ -78,7 +78,7 @@ async function sincronizarBandeiraPorCalendario(dataReferencia = new Date()) {
 
 function sincronizarBandeiraPorCalendarioEmBackground(dataReferencia = new Date()) {
   sincronizarBandeiraPorCalendario(dataReferencia).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 

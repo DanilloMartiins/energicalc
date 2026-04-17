@@ -134,7 +134,7 @@ async function sincronizarCoberturaDistribuidorasAneel(force = false) {
 
 function sincronizarCoberturaDistribuidorasAneelEmBackground(force = false) {
   sincronizarCoberturaDistribuidorasAneel(force).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 
@@ -166,13 +166,13 @@ async function sincronizarCoberturaDistribuidorasNoMes(dataReferencia = new Date
 
 function sincronizarCoberturaDistribuidorasNoMesEmBackground(dataReferencia = new Date()) {
   sincronizarCoberturaDistribuidorasNoMes(dataReferencia).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 
 function sincronizarDistribuidorasAneelEmBackground(force = false) {
   sincronizarDistribuidorasAneel(force).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 

@@ -118,7 +118,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
       this.enviando = false;
       this.sincronizarEstadoCampos();
       this.erroSimulacao =
-        'A simulacao nao retornou a tempo. Verifique backend/proxy e tente novamente.';
+        'A simulação não retornou a tempo. Verifique backend/proxy e tente novamente.';
     }, 16000);
 
     this.requisicaoSimulacao = this.consultaApiService
@@ -155,19 +155,19 @@ export class SimuladorPage implements OnInit, OnDestroy {
         error: (error) => {
           if (error instanceof Error && error.message === 'DISTRIBUIDORA_NAO_ENCONTRADA_POR_CIDADE_UF') {
             this.erroSimulacao =
-              'Nao encontramos distribuidora para essa cidade/UF. Confira os dados e tente novamente.';
+              'Não encontramos distribuidora para essa cidade/UF. Confira os dados e tente novamente.';
             return;
           }
 
           if ((error as { name?: string })?.name === 'TimeoutError') {
             this.erroSimulacao =
-              'A simulacao demorou mais do que o esperado. Confira se o backend esta ativo e tente novamente.';
+              'A simulação demorou mais do que o esperado. Confira se o backend está ativo e tente novamente.';
             return;
           }
 
           this.erroSimulacao = this.extrairMensagemErro(
             error,
-            'Nao conseguimos calcular sua fatura agora. Tente novamente em instantes.',
+            'Não conseguimos calcular sua fatura agora. Tente novamente em instantes.',
           );
         },
       });
@@ -219,7 +219,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
     }
 
     if (campo.errors['required']) {
-      return 'Vamos comecar pela leitura anterior para calcular seu consumo.';
+      return 'Vamos começar pela leitura anterior para calcular seu consumo.';
     }
 
     if (campo.errors['min']) {
@@ -242,7 +242,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
     }
 
     if (campo.errors['required']) {
-      return 'Agora informe a leitura atual para fecharmos o calculo.';
+      return 'Agora informe a leitura atual para fecharmos o cálculo.';
     }
 
     if (campo.errors['min']) {
@@ -278,7 +278,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
     }
 
     if (campo.errors['required']) {
-      return 'Informe a cidade onde voce mora.';
+      return 'Informe a cidade onde você mora.';
     }
 
     return 'Confira a cidade informada para continuar.';
@@ -322,7 +322,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
         catchError((error) => {
           erroBandeira = this.extrairMensagemErro(
             error,
-            'Nao conseguimos carregar a bandeira vigente no momento.',
+            'Não conseguimos carregar a bandeira vigente no momento.',
           );
           return of(null as BandeiraAtual | null);
         }),
@@ -343,7 +343,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
 
           if (!this.bandeiraVigente) {
             this.erroCarregamento =
-              erroBandeira || 'A bandeira vigente nao carregou agora. Tente novamente.';
+              erroBandeira || 'A bandeira vigente não carregou agora. Tente novamente.';
           }
 
           this.sincronizarEstadoCampos();
@@ -405,7 +405,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
 
   private extrairMensagemErro(error: unknown, mensagemPadrao: string): string {
     if ((error as { name?: string })?.name === 'TimeoutError') {
-      return 'A requisicao demorou demais para responder. Confira backend/proxy e tente novamente.';
+      return 'A requisição demorou demais para responder. Confira backend/proxy e tente novamente.';
     }
 
     const erro = error as {

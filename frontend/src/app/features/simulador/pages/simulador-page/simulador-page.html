@@ -3,12 +3,12 @@
     <p class="eyebrow">EnergiCalc</p>
     <h2>Simulador de Fatura</h2>
     <p class="subtitle">
-      Informe as leituras e o periodo para estimar o valor total da conta.
+      Informe as leituras e o período para estimar o valor total da conta.
     </p>
   </header>
 
   <p class="status status-loading" *ngIf="carregandoOpcoes">
-    Estamos preparando os dados iniciais da simulacao...
+    Estamos preparando os dados iniciais da simulação...
   </p>
 
   <p class="status status-error" *ngIf="erroCarregamento">
@@ -69,7 +69,7 @@
         id="cidade"
         type="text"
         formControlName="cidade"
-        placeholder="Ex.: Campinas"
+        placeholder="Ex.: Carpina"
       />
       <small class="field-error" *ngIf="mensagemErroCidade()">
         {{ mensagemErroCidade() }}
@@ -80,7 +80,7 @@
         id="uf"
         type="text"
         formControlName="uf"
-        placeholder="Ex.: SP"
+        placeholder="Ex.: PE"
         maxlength="2"
       />
       <small class="field-error" *ngIf="mensagemErroUf()">
@@ -103,7 +103,7 @@
     </form>
 
     <article class="card result-card" *ngIf="resultado; else estadoInicial">
-      <p class="result-title">Resumo da Simulacao</p>
+      <p class="result-title">Resumo da Simulação</p>
       <p class="result-main">R$ {{ resultado.total | number: "1.2-2" }}</p>
 
       <dl>
@@ -116,11 +116,11 @@
           <dd>{{ resultado.consumoKwh | number: "1.0-2" }} kWh</dd>
         </div>
         <div>
-          <dt>Media diaria</dt>
+          <dt>Média diária</dt>
           <dd>{{ resultado.mediaDiaria | number: "1.0-2" }} kWh</dd>
         </div>
         <div>
-          <dt>Valor energia</dt>
+          <dt>Valor da energia</dt>
           <dd>R$ {{ resultado.valorEnergia | number: "1.2-2" }}</dd>
         </div>
         <div>
@@ -143,8 +143,8 @@
 
     <ng-template #estadoInicial>
       <article class="card result-card empty">
-        <p class="result-title">Resumo da Simulacao</p>
-        <p>Assim que voce preencher e enviar, a estimativa aparece aqui.</p>
+        <p class="result-title">Resumo da Simulação</p>
+        <p>Assim que você preencher e enviar, a estimativa aparece aqui.</p>
       </article>
     </ng-template>
   </div>

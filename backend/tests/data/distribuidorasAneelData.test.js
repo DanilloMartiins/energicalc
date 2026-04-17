@@ -23,7 +23,7 @@ describe("distribuidorasAneelData", () => {
         [
           {
             codigo: "ENEL_SP",
-            nome: "Enel Sao Paulo Atualizada",
+            nome: "Enel São Paulo Atualizada",
             uf: "SP"
           }
         ],
@@ -46,7 +46,7 @@ describe("distribuidorasAneelData", () => {
     expect(lista.length).toBeGreaterThanOrEqual(3);
     expect(lista.find((item) => item.codigo === "ENEL_SP")).toEqual({
       codigo: "ENEL_SP",
-      nome: "Enel Sao Paulo Atualizada",
+      nome: "Enel São Paulo Atualizada",
       uf: "SP"
     });
     expect(lista.find((item) => item.codigo === "CPFL_PAULISTA")).toBeTruthy();
@@ -76,7 +76,7 @@ describe("distribuidorasAneelData", () => {
       arquivoFallback,
       JSON.stringify(
         [
-          { codigo: "ENEL_SP", nome: "Enel Sao Paulo", uf: "SP" },
+          { codigo: "ENEL_SP", nome: "Enel São Paulo", uf: "SP" },
           { codigo: "CPFL_PAULISTA", nome: "CPFL Paulista", uf: "SP" },
           { codigo: "COELBA", nome: "Neoenergia Coelba", uf: "BA" }
         ],
@@ -103,10 +103,11 @@ describe("distribuidorasAneelData", () => {
     const salvo = JSON.parse(fs.readFileSync(arquivoFallback, "utf-8"));
     expect(salvo).toEqual(
       expect.arrayContaining([
-        { codigo: "ENEL_SP", nome: "Enel Sao Paulo", uf: "SP" },
+        { codigo: "ENEL_SP", nome: "Enel São Paulo", uf: "SP" },
         { codigo: "CPFL_PAULISTA", nome: "CPFL Paulista", uf: "SP" },
         { codigo: "COELBA", nome: "Neoenergia Coelba", uf: "BA" }
       ])
     );
   });
 });
+

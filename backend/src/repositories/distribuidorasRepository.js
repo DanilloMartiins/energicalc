@@ -5,6 +5,7 @@ const { getPostgresPool } = require("../database/postgresClient");
 
 let cacheDistribuidoras = normalizarListaDistribuidoras(distribuidorasData.getDistribuidoras());
 let cacheCoberturaCidades = normalizarListaCobertura(distribuidorasCoberturaData.getCoberturaPadrao());
+let indiceCoberturaCidadeUf = construirIndiceCobertura(cacheCoberturaCidades);
 let inicializacaoEmAndamento = null;
 
 function removerAcentos(texto) {
@@ -78,6 +79,21 @@ function normalizarListaCobertura(lista) {
 
 function cloneLista(lista) {
   return lista.map((item) => ({ ...item }));
+}
+
+function construirChaveCidadeUf(cidadeNormalizada, ufNormalizada) {
+  return `${ufNormalizada}|${cidadeNormalizada}`;
+}
+
+function construirIndiceCobertura(listaCobertura) {
+  const mapa = new Map();
+
+  listaCobertura.forEach((item) => {
+    const chave = construirChaveCidadeUf(item.cidadeNormalizada, item.uf);
+    mapa.set(chave, item.distribuidoraCodigo);
+  });
+
+  return mapa;
 }
 
 async function criarEstruturaSeNecessario(client) {
@@ -239,6 +255,7 @@ async function inicializarRepositorio() {
 
     if (coberturaDb.length > 0) {
       cacheCoberturaCidades = coberturaDb;
+      indiceCoberturaCidadeUf = construirIndiceCobertura(cacheCoberturaCidades);
     }
 
     return {
@@ -308,11 +325,8 @@ function resolverDistribuidoraCodigoPorCidadeUf(cidade, uf) {
     return null;
   }
 
-  const cobertura = cacheCoberturaCidades.find((item) => {
-    return item.uf === ufNormalizada && item.cidadeNormalizada === cidadeNormalizada;
-  });
-
-  return cobertura ? cobertura.distribuidoraCodigo : null;
+  const chave = construirChaveCidadeUf(cidadeNormalizada, ufNormalizada);
+  return indiceCoberturaCidadeUf.get(chave) || null;
 }
 
 async function sincronizarListaDistribuidoras(listaDistribuidoras) {
@@ -373,6 +387,7 @@ async function sincronizarCoberturaCidades(listaCobertura) {
   const pool = getPostgresPool();
   if (!pool) {
     cacheCoberturaCidades = listaNormalizada;
+    indiceCoberturaCidadeUf = construirIndiceCobertura(cacheCoberturaCidades);
     return listarCoberturaCache();
   }
 
@@ -416,6 +431,7 @@ async function sincronizarCoberturaCidades(listaCobertura) {
 
   const coberturaDb = await carregarCoberturaDoBanco(pool);
   cacheCoberturaCidades = coberturaDb.length > 0 ? coberturaDb : listaNormalizada;
+  indiceCoberturaCidadeUf = construirIndiceCobertura(cacheCoberturaCidades);
   return listarCoberturaCache();
 }
 
@@ -433,6 +449,7 @@ module.exports = {
     normalizarListaDistribuidoras,
     normalizarListaCobertura,
     normalizarCidade,
-    normalizarUf
+    normalizarUf,
+    construirIndiceCobertura
   }
 };

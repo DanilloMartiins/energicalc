@@ -1,7 +1,7 @@
 [
   {
     "codigo": "ENEL_SP",
-    "nome": "Enel Sao Paulo",
+    "nome": "Enel São Paulo",
     "uf": "SP"
   },
   {
@@ -15,4 +15,3 @@
     "uf": "BA"
   }
 ]
-

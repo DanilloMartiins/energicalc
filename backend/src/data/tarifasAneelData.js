@@ -110,6 +110,19 @@ function arredondarCincoCasas(valor) {
   return Number(valor.toFixed(5));
 }
 
+function parseNumeroOpcional(valor) {
+  if (valor === null || valor === undefined) {
+    return null;
+  }
+
+  if (typeof valor === "string" && valor.trim() === "") {
+    return null;
+  }
+
+  const numero = Number(valor);
+  return Number.isFinite(numero) ? numero : null;
+}
+
 function ehRegraB1Convencional(item) {
   const baseTarifaria = normalizarTextoComparacao(item.DscBaseTarifaria);
   const subGrupo = normalizarTextoComparacao(item.DscSubGrupo);
@@ -138,7 +151,7 @@ function registroEstaVigente(dataInicio, dataFim, referenciaTimestamp) {
   return true;
 }
 
-function acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh) {
+function acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh, teKwh, tusdKwh) {
   const sigAgente = String(item.SigAgente || "").trim();
   if (!sigAgente) {
     return;
@@ -151,6 +164,8 @@ function acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh) {
     porAgente[chave] = {
       sigAgente,
       tarifaKwh,
+      teKwh,
+      tusdKwh,
       dataInicioVigencia: dataInicio,
       fonte: "aneel"
     };
@@ -179,8 +194,10 @@ function extrairTarifasVigentes(registros, referenciaTimestamp = Date.now()) {
       return;
     }
 
-    const tarifaKwh = arredondarCincoCasas((valorTusd + valorTe) / 1000);
-    acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh);
+    const teKwh = arredondarCincoCasas(valorTe / 1000);
+    const tusdKwh = arredondarCincoCasas(valorTusd / 1000);
+    const tarifaKwh = arredondarCincoCasas(tusdKwh + teKwh);
+    acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh, teKwh, tusdKwh);
   });
 
   return porAgente;
@@ -202,8 +219,10 @@ function extrairTarifasMaisRecentes(registros) {
       return;
     }
 
-    const tarifaKwh = arredondarCincoCasas((valorTusd + valorTe) / 1000);
-    acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh);
+    const teKwh = arredondarCincoCasas(valorTe / 1000);
+    const tusdKwh = arredondarCincoCasas(valorTusd / 1000);
+    const tarifaKwh = arredondarCincoCasas(tusdKwh + teKwh);
+    acumularRegistroTarifa(porAgente, item, dataInicio, tarifaKwh, teKwh, tusdKwh);
   });
 
   return porAgente;
@@ -218,6 +237,8 @@ function normalizarListaFallback(tarifas) {
     .map((item) => {
       const distribuidora = String(item && item.distribuidora ? item.distribuidora : "").trim();
       const tarifaKwh = Number(item && item.tarifaKwh);
+      const teKwh = parseNumeroOpcional(item && item.teKwh);
+      const tusdKwh = parseNumeroOpcional(item && item.tusdKwh);
 
       if (!distribuidora || !Number.isFinite(tarifaKwh)) {
         return null;
@@ -225,7 +246,9 @@ function normalizarListaFallback(tarifas) {
 
       return {
         distribuidora,
-        tarifaKwh: arredondarCincoCasas(tarifaKwh)
+        tarifaKwh: arredondarCincoCasas(tarifaKwh),
+        teKwh: teKwh === null ? null : arredondarCincoCasas(teKwh),
+        tusdKwh: tusdKwh === null ? null : arredondarCincoCasas(tusdKwh)
       };
     })
     .filter(Boolean);
@@ -265,7 +288,11 @@ function atualizarTarifasFallbackLocalComAneel(tarifasExtraidasPorSig) {
     if (tarifaAneel && Number.isFinite(tarifaAneel.tarifaKwh)) {
       return {
         distribuidora: item.distribuidora,
-        tarifaKwh: arredondarCincoCasas(tarifaAneel.tarifaKwh)
+        tarifaKwh: arredondarCincoCasas(tarifaAneel.tarifaKwh),
+        teKwh: Number.isFinite(tarifaAneel.teKwh) ? arredondarCincoCasas(tarifaAneel.teKwh) : null,
+        tusdKwh: Number.isFinite(tarifaAneel.tusdKwh)
+          ? arredondarCincoCasas(tarifaAneel.tusdKwh)
+          : null
       };
     }
 
@@ -277,7 +304,7 @@ function atualizarTarifasFallbackLocalComAneel(tarifasExtraidasPorSig) {
   try {
     persistirTarifasFallbackLocal(fallbackAtualizado);
   } catch (error) {
-    // Falha de escrita local nao deve derrubar a sincronizacao da ANEEL.
+    // Falha de escrita local não deve derrubar a sincronização da ANEEL.
   }
 }
 
@@ -295,6 +322,8 @@ function construirFallbackCache() {
     porAgente[normalizarChave(sigAgente)] = {
       sigAgente,
       tarifaKwh,
+      teKwh: parseNumeroOpcional(item.teKwh),
+      tusdKwh: parseNumeroOpcional(item.tusdKwh),
       dataInicioVigencia: null,
       fonte: "fallback_local"
     };
@@ -320,7 +349,7 @@ async function baixarConteudoCsv(url) {
   } catch (error) {
     if (error && error.name === "AbortError") {
       throw new Error(
-        `Timeout ao baixar CSV de tarifas da ANEEL apos ${timeoutMs}ms. URL: ${url}`
+        `Timeout ao baixar CSV de tarifas da ANEEL após ${timeoutMs}ms. URL: ${url}`
       );
     }
 
@@ -341,6 +370,8 @@ function toListaTarifas(cachePorSig) {
     return {
       sigAgente: item.sigAgente,
       tarifaKwh: item.tarifaKwh,
+      teKwh: Number.isFinite(item.teKwh) ? item.teKwh : null,
+      tusdKwh: Number.isFinite(item.tusdKwh) ? item.tusdKwh : null,
       dataInicioVigencia: item.dataInicioVigencia,
       fonte: item.fonte
     };
@@ -362,7 +393,7 @@ async function sincronizarComAneel() {
   }
 
   if (Object.keys(tarifasExtraidas).length === 0) {
-    throw new Error("Nao foi possivel extrair tarifas validas da base da ANEEL.");
+    throw new Error("Não foi possível extrair tarifas válidas da base da ANEEL.");
   }
 
   atualizarTarifasFallbackLocalComAneel(tarifasExtraidas);

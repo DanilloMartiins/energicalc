@@ -8,9 +8,14 @@ describe("distribuidorasService - mapeamento ANEEL", () => {
   });
 
   it("deve resolver SigAgente pelo id numerico da distribuidora", () => {
-    expect(distribuidorasService.obterSigAgenteAneel("1")).toBe("ENEL SP");
-    expect(distribuidorasService.obterSigAgenteAneel("2")).toBe("CPFL PAULISTA");
-    expect(distribuidorasService.obterSigAgenteAneel("3")).toBe("COELBA");
+    const lista = distribuidorasService.listarDistribuidoras();
+    const idEnel = String(lista.findIndex((item) => item.codigo === "ENEL_SP") + 1);
+    const idCpfl = String(lista.findIndex((item) => item.codigo === "CPFL_PAULISTA") + 1);
+    const idCoelba = String(lista.findIndex((item) => item.codigo === "COELBA") + 1);
+
+    expect(distribuidorasService.obterSigAgenteAneel(idEnel)).toBe("ENEL SP");
+    expect(distribuidorasService.obterSigAgenteAneel(idCpfl)).toBe("CPFL PAULISTA");
+    expect(distribuidorasService.obterSigAgenteAneel(idCoelba)).toBe("COELBA");
   });
 
   it("deve retornar null para distribuidora inexistente", () => {

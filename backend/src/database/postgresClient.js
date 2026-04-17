@@ -75,7 +75,7 @@ function getPostgresPool() {
   }
 
   pool.on("error", () => {
-    // Erro de conexao nao deve derrubar a API.
+    // Erro de conexão não deve derrubar a API.
   });
 
   return pool;
@@ -93,4 +93,3 @@ module.exports = {
     obterConfiguracaoDb
   }
 };
-

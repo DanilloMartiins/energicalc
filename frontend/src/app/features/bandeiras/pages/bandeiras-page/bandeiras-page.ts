@@ -67,7 +67,7 @@ export class BandeirasPage implements OnInit {
           this.erro =
             error?.error?.error?.message ||
             error?.error?.message ||
-            'Nao foi possivel carregar a bandeira atual.';
+            'Não foi possível carregar a bandeira atual.';
         },
       });
   }

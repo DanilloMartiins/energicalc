@@ -256,7 +256,7 @@ async function baixarConteudoCsv(url) {
     response = await fetch(url, { signal: controller.signal });
   } catch (error) {
     if (error && error.name === "AbortError") {
-      throw new Error(`Timeout ao baixar CSV da ANEEL apos ${timeoutMs}ms. URL: ${url}`);
+      throw new Error(`Timeout ao baixar CSV da ANEEL após ${timeoutMs}ms. URL: ${url}`);
     }
 
     throw error;
@@ -283,7 +283,7 @@ async function sincronizarComAneel() {
   const valoresExtraidos = extrairValoresKwh(adicionais);
 
   if (!vigente) {
-    throw new Error("Nao foi possivel identificar a bandeira vigente na base da ANEEL.");
+    throw new Error("Não foi possível identificar a bandeira vigente na base da ANEEL.");
   }
 
   const bandeiraAtualizada = {
@@ -300,7 +300,7 @@ async function sincronizarComAneel() {
   try {
     persistirBandeiraFallbackLocal(bandeiraCache);
   } catch (error) {
-    // Falha de escrita local nao deve derrubar resposta da API.
+    // Falha de escrita local não deve derrubar resposta da API.
   }
 
   ultimaSincronizacao = Date.now();

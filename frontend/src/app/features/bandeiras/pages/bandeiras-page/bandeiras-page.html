@@ -1,13 +1,13 @@
 <section class="bandeiras-page">
   <header class="hero">
     <p class="eyebrow">EnergiCalc</p>
-    <h2>Bandeiras Tarifarias</h2>
+    <h2>Bandeiras Tarifárias</h2>
     <p class="subtitle">
       Consulte a bandeira atual e os valores adicionais por kWh retornados pela API.
     </p>
   </header>
 
-  <p class="status loading" *ngIf="carregando">Carregando informacoes da bandeira...</p>
+  <p class="status loading" *ngIf="carregando">Carregando informações da bandeira...</p>
   <p class="status error" *ngIf="erro">
     {{ erro }}
     <button type="button" (click)="recarregar()">Tentar novamente</button>

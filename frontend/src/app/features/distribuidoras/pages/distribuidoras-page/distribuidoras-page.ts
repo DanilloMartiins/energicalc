@@ -132,7 +132,7 @@ export class DistribuidorasPage implements OnInit {
             return of(payload);
           }
 
-          // Fallback local para suportar busca por codigo sem depender do backend.
+          // Fallback local para suportar busca por código sem depender do backend.
           return this.consultaApiService.listarDistribuidoras().pipe(
             map((lista) => this.filtrarLocalPorNomeOuCodigo(lista, { uf, nome })),
           );
@@ -165,7 +165,7 @@ export class DistribuidorasPage implements OnInit {
           this.erro =
             error?.error?.error?.message ||
             error?.error?.message ||
-            'Nao foi possivel carregar as distribuidoras.';
+            'Não foi possível carregar as distribuidoras.';
         },
       });
   }

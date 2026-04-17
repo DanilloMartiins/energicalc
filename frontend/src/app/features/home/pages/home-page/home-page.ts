@@ -65,7 +65,7 @@ export class HomePage implements OnInit {
               ? 'Online'
               : health.status === 'fallback'
                 ? 'Offline (fallback local)'
-                : 'Indisponivel';
+                : 'Indisponível';
           this.totalDistribuidoras = distribuidoras.length;
           this.impostos = impostos;
           this.mediaTarifaKwh = this.calcularMediaTarifa(tarifas.map((item) => item.tarifaKwh));
@@ -83,7 +83,7 @@ export class HomePage implements OnInit {
 
           this.erro = this.extrairMensagemErro(
             error,
-            'Nao foi possivel carregar os dados iniciais da home.',
+            'Não foi possível carregar os dados iniciais da home.',
           );
         },
       });

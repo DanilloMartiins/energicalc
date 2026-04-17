@@ -32,7 +32,7 @@ function identificarMesSincronizadoInicial() {
   }
 }
 
-function obterTarifaFallbackPorNome(nomeDistribuidora) {
+function obterTarifaFallbackDetalhadaPorNome(nomeDistribuidora) {
   const nomeNormalizado = String(nomeDistribuidora || "").trim().toLowerCase();
 
   if (!nomeNormalizado) {
@@ -48,7 +48,22 @@ function obterTarifaFallbackPorNome(nomeDistribuidora) {
     return null;
   }
 
-  return Number(tarifaEncontrada.tarifaKwh);
+  return {
+    tarifaKwh: Number(tarifaEncontrada.tarifaKwh),
+    teKwh:
+      tarifaEncontrada.teKwh === null || tarifaEncontrada.teKwh === undefined
+        ? null
+        : Number.isFinite(Number(tarifaEncontrada.teKwh))
+          ? Number(tarifaEncontrada.teKwh)
+          : null,
+    tusdKwh:
+      tarifaEncontrada.tusdKwh === null || tarifaEncontrada.tusdKwh === undefined
+        ? null
+        : Number.isFinite(Number(tarifaEncontrada.tusdKwh))
+          ? Number(tarifaEncontrada.tusdKwh)
+          : null,
+    fonte: "fallback_local"
+  };
 }
 
 async function listarTarifas() {
@@ -56,17 +71,31 @@ async function listarTarifas() {
 
   return distribuidoras.map((item) => {
     const tarifaVigente = obterTarifaVigentePorDistribuidora(item.codigo);
-    const tarifaFallback = obterTarifaFallbackPorNome(item.nome);
+    const tarifaFallback = obterTarifaFallbackDetalhadaPorNome(item.nome);
     const tarifaKwh =
       tarifaVigente && Number.isFinite(tarifaVigente.tarifaKwh)
         ? tarifaVigente.tarifaKwh
-        : Number.isFinite(tarifaFallback)
-          ? tarifaFallback
+        : tarifaFallback && Number.isFinite(tarifaFallback.tarifaKwh)
+          ? tarifaFallback.tarifaKwh
           : 0.82;
+    const teKwh =
+      tarifaVigente && Number.isFinite(tarifaVigente.teKwh)
+        ? tarifaVigente.teKwh
+        : tarifaFallback && Number.isFinite(tarifaFallback.teKwh)
+          ? tarifaFallback.teKwh
+          : null;
+    const tusdKwh =
+      tarifaVigente && Number.isFinite(tarifaVigente.tusdKwh)
+        ? tarifaVigente.tusdKwh
+        : tarifaFallback && Number.isFinite(tarifaFallback.tusdKwh)
+          ? tarifaFallback.tusdKwh
+          : null;
 
     return {
       distribuidora: item.nome,
-      tarifaKwh
+      tarifaKwh,
+      teKwh,
+      tusdKwh
     };
   });
 }
@@ -77,7 +106,7 @@ async function sincronizarTarifasAneel(force = false) {
 
 function sincronizarTarifasAneelEmBackground(force = false) {
   tarifasAneelData.syncTarifasAneel(force).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 
@@ -114,7 +143,7 @@ async function sincronizarTarifasNoMes(dataReferencia = new Date()) {
 
 function sincronizarTarifasNoMesEmBackground(dataReferencia = new Date()) {
   sincronizarTarifasNoMes(dataReferencia).catch(() => {
-    // Nao bloqueia o fluxo principal da API quando a ANEEL oscila.
+    // Não bloqueia o fluxo principal da API quando a ANEEL oscila.
   });
 }
 

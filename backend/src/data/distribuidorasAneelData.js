@@ -99,7 +99,7 @@ function atualizarDistribuidorasComTarifasAneel(distribuidorasBase, tarifas) {
       return item;
     }
 
-    // Mantemos contrato atual (codigo/nome/uf), apenas validando consistencia com ANEEL.
+    // Mantemos contrato atual (codigo/nome/uf), apenas validando consistência com ANEEL.
     return { ...item };
   });
 
@@ -111,7 +111,7 @@ async function sincronizarComAneel() {
   const atualizadas = atualizarDistribuidorasComTarifasAneel(distribuidorasCache, tarifas);
 
   if (atualizadas.length === 0) {
-    throw new Error("Nao foi possivel atualizar distribuidoras com dados da ANEEL.");
+    throw new Error("Não foi possível atualizar distribuidoras com dados da ANEEL.");
   }
 
   distribuidorasCache = atualizadas;
@@ -119,7 +119,7 @@ async function sincronizarComAneel() {
   try {
     persistirDistribuidorasFallbackLocal(atualizadas);
   } catch (error) {
-    // Falha de escrita local nao deve bloquear resposta da API.
+    // Falha de escrita local não deve bloquear resposta da API.
   }
 
   ultimaSincronizacao = Date.now();

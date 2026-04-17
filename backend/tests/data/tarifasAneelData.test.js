@@ -211,7 +211,7 @@ describe("tarifasAneelData", () => {
       arquivoFallback,
       JSON.stringify(
         [
-          { distribuidora: "Enel Sao Paulo", tarifaKwh: 0.5 },
+          { distribuidora: "Enel São Paulo", tarifaKwh: 0.5 },
           { distribuidora: "CPFL Paulista", tarifaKwh: 0.5 },
           { distribuidora: "Neoenergia Coelba", tarifaKwh: 0.5 }
         ],
@@ -240,9 +240,10 @@ describe("tarifasAneelData", () => {
     const salvo = JSON.parse(fs.readFileSync(arquivoFallback, "utf-8"));
 
     expect(salvo).toEqual([
-      { distribuidora: "Enel Sao Paulo", tarifaKwh: 1.2 },
-      { distribuidora: "CPFL Paulista", tarifaKwh: 0.9 },
-      { distribuidora: "Neoenergia Coelba", tarifaKwh: 0.7 }
+      { distribuidora: "Enel São Paulo", tarifaKwh: 1.2, teKwh: 0.3, tusdKwh: 0.9 },
+      { distribuidora: "CPFL Paulista", tarifaKwh: 0.9, teKwh: 0.3, tusdKwh: 0.6 },
+      { distribuidora: "Neoenergia Coelba", tarifaKwh: 0.7, teKwh: 0.2, tusdKwh: 0.5 }
     ]);
   });
 });
+

@@ -13,14 +13,14 @@ function validarPaginacao(page, limit) {
   if (!isValidNumber(pageNumero) || !isPositive(pageNumero)) {
     return {
       valida: false,
-      mensagem: "page deve ser um numero maior que zero."
+      mensagem: "page deve ser um número maior que zero."
     };
   }
 
   if (!isValidNumber(limitNumero) || !isPositive(limitNumero)) {
     return {
       valida: false,
-      mensagem: "limit deve ser um numero maior que zero."
+      mensagem: "limit deve ser um número maior que zero."
     };
   }
 
@@ -68,7 +68,7 @@ function resolverDistribuidoraPorCidadeUf(req, res, next) {
       .toUpperCase();
 
     if (!cidade || !uf) {
-      return sendError(res, 400, "cidade e uf sao obrigatorios para resolver a distribuidora.");
+      return sendError(res, 400, "cidade e uf são obrigatórios para resolver a distribuidora.");
     }
 
     if (uf.length !== 2) {
@@ -78,7 +78,7 @@ function resolverDistribuidoraPorCidadeUf(req, res, next) {
     const distribuidora = distribuidorasService.obterDistribuidoraPorCidadeUf(cidade, uf);
 
     if (!distribuidora) {
-      return sendError(res, 404, "Nao foi possivel identificar distribuidora para cidade/UF.");
+      return sendError(res, 404, "Não foi possível identificar distribuidora para cidade/UF.");
     }
 
     return sendSuccess(res, 200, distribuidora);

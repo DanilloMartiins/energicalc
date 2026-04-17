@@ -3,7 +3,7 @@ const { sendError } = require("../utils/response");
 
 function errorHandler(err, req, res, next) {
   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-    return sendError(res, 400, "JSON invalido no corpo da requisicao.");
+    return sendError(res, 400, "JSON inválido no corpo da requisição.");
   }
 
   if (err instanceof AppError) {

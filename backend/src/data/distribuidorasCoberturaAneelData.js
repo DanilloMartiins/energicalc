@@ -234,7 +234,7 @@ async function baixarConteudoCsv(url) {
     response = await fetch(url, { signal: controller.signal });
   } catch (error) {
     if (error && error.name === "AbortError") {
-      throw new Error(`Timeout ao baixar CSV da ANEEL apos ${timeoutMs}ms. URL: ${url}`);
+      throw new Error(`Timeout ao baixar CSV da ANEEL após ${timeoutMs}ms. URL: ${url}`);
     }
 
     throw error;
@@ -456,7 +456,7 @@ async function sincronizarComAneel() {
   const snapshot = montarSnapshot(registrosMunicipios, mapaIdeConjParaSigAgente, mapaNomePorSig);
 
   if (snapshot.distribuidoras.length === 0 || snapshot.cobertura.length === 0) {
-    throw new Error("Nao foi possivel montar snapshot de distribuidoras/cobertura da ANEEL.");
+    throw new Error("Não foi possível montar snapshot de distribuidoras/cobertura da ANEEL.");
   }
 
   dadosCache = snapshot;
@@ -464,7 +464,7 @@ async function sincronizarComAneel() {
   try {
     persistirFallbackLocal(snapshot);
   } catch (error) {
-    // Falha de escrita local nao deve bloquear resposta da API.
+    // Falha de escrita local não deve bloquear resposta da API.
   }
 
   ultimaSincronizacao = Date.now();
