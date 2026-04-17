@@ -102,7 +102,7 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   it("deve retornar 400 quando faltam campos obrigatorios no body", async () => {
     const response = await request(app).post("/api/calculo").send({
       consumo: 250,
-      distribuidora: "Enel SÃ£o Paulo"
+      distribuidora: "Enel São Paulo"
     });
 
     expect(response.status).toBe(400);
@@ -118,7 +118,7 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   it("deve retornar 400 quando consumo nao e numerico", async () => {
     const response = await request(app).post("/api/calculo").send({
       consumo: "abc",
-      distribuidora: "Enel SÃ£o Paulo",
+      distribuidora: "Enel São Paulo",
       bandeira: "verde"
     });
 
@@ -134,7 +134,7 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   it("deve retornar 400 quando consumo e menor ou igual a zero", async () => {
     const response = await request(app).post("/api/calculo").send({
       consumo: 0,
-      distribuidora: "Enel SÃ£o Paulo",
+      distribuidora: "Enel São Paulo",
       bandeira: "verde"
     });
 
@@ -166,7 +166,7 @@ describe("Validacao do endpoint POST /api/calculo", () => {
   it("deve retornar 400 para bandeira invalida no body", async () => {
     const response = await request(app).post("/api/calculo").send({
       consumo: 250,
-      distribuidora: "Enel SÃ£o Paulo",
+      distribuidora: "Enel São Paulo",
       bandeira: "azul"
     });
 
@@ -175,3 +175,4 @@ describe("Validacao do endpoint POST /api/calculo", () => {
     expect(response.body.error.message).toContain("Bandeira invalida.");
   });
 });
+

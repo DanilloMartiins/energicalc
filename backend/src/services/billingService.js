@@ -2,6 +2,7 @@ const billingConfigData = require("../data/billingConfigData");
 const bandeiraData = require("../data/bandeiraData");
 const impostosData = require("../data/impostosData");
 const tarifasService = require("./tarifasService");
+const cipService = require("./cipService");
 const { toNumber, isValidNumber } = require("../utils/number");
 
 const TIPOS_VALIDOS = new Set(["fornecimento", "tributo", "regulatorio"]);
@@ -14,6 +15,7 @@ const CODIGOS_PERMITIDOS = new Set([
   "pis",
   "cofins",
   "icms",
+  "cip",
   "bandeira",
   "correcao_monetaria",
   "icms_cde",
@@ -297,7 +299,53 @@ function obterBandeira(tipoInformado) {
   };
 }
 
-function obterTarifaDetalhada(distribuidora) {
+function obterConfiguracaoSeparacaoTarifaFallback(configuracao) {
+  const regra =
+    configuracao && configuracao.separacaoTarifaFallback && typeof configuracao.separacaoTarifaFallback === "object"
+      ? configuracao.separacaoTarifaFallback
+      : {};
+  const tePercentualInformado = toNumber(regra.tePercentual);
+  const tusdPercentualInformado = toNumber(regra.tusdPercentual);
+
+  let tePercentual =
+    isValidNumber(tePercentualInformado) && tePercentualInformado >= 0 ? tePercentualInformado : 0.4;
+  let tusdPercentual =
+    isValidNumber(tusdPercentualInformado) && tusdPercentualInformado >= 0 ? tusdPercentualInformado : 0.6;
+  const soma = tePercentual + tusdPercentual;
+
+  if (!isValidNumber(soma) || soma <= 0) {
+    tePercentual = 0.4;
+    tusdPercentual = 0.6;
+  } else {
+    tePercentual = tePercentual / soma;
+    tusdPercentual = tusdPercentual / soma;
+  }
+
+  return {
+    tePercentual,
+    tusdPercentual,
+    fonte: String(regra.fonte || "fallback_parametrizado").trim() || "fallback_parametrizado",
+    confianca: normalizarConfianca(regra.confianca || "baixa"),
+    dataReferencia: normalizarDataReferencia(regra.dataReferencia || regra.ultimaAtualizacao)
+  };
+}
+
+function aplicarSeparacaoTarifaFallback(tarifaTotalKwh, configuracao) {
+  const regraFallback = obterConfiguracaoSeparacaoTarifaFallback(configuracao);
+  const teKwh = arredondar(tarifaTotalKwh * regraFallback.tePercentual);
+  const tusdKwh = arredondar(Math.max(tarifaTotalKwh - teKwh, 0));
+
+  return {
+    teKwh,
+    tusdKwh,
+    fonte: regraFallback.fonte,
+    confianca: regraFallback.confianca,
+    dataReferencia: regraFallback.dataReferencia,
+    separacaoOrigem: "fallback_parametrizado"
+  };
+}
+
+function obterTarifaDetalhada(distribuidora, configuracao) {
   const tarifaVigente = tarifasService.obterTarifaVigentePorDistribuidora(distribuidora.codigo);
   const tarifaTotalFallback = toNumber(
     distribuidora.tarifa || distribuidora.tarifaBaseKwh || distribuidora.tarifaKwh || 0.82
@@ -317,25 +365,259 @@ function obterTarifaDetalhada(distribuidora) {
     tarifaVigente && tarifaVigente.tusdKwh !== null && tarifaVigente.tusdKwh !== undefined
       ? toNumber(tarifaVigente.tusdKwh)
       : Number.NaN;
-  const teKwh =
-    isValidNumber(teKwhVigente) && teKwhVigente >= 0 ? teKwhVigente : tarifaTotal;
-  const tusdKwh =
-    isValidNumber(tusdKwhVigente) && tusdKwhVigente >= 0 ? tusdKwhVigente : Math.max(tarifaTotal - teKwh, 0);
+  const temTeOficial = isValidNumber(teKwhVigente) && teKwhVigente >= 0;
+  const temTusdOficial = isValidNumber(tusdKwhVigente) && tusdKwhVigente >= 0;
+  const somaOficial =
+    (temTeOficial ? teKwhVigente : 0) + (temTusdOficial ? tusdKwhVigente : 0);
+  const origemTarifa = (tarifaVigente && tarifaVigente.fonte) || "fallback_local";
+  const dataReferenciaTarifa = normalizarDataReferencia(
+    tarifaVigente && tarifaVigente.dataInicioVigencia ? tarifaVigente.dataInicioVigencia : null
+  );
+
+  if (temTeOficial && temTusdOficial && somaOficial > 0) {
+    return {
+      tarifaTotalKwh: tarifaTotal,
+      teKwh: teKwhVigente,
+      tusdKwh: tusdKwhVigente,
+      fonte: origemTarifa,
+      confianca: origemTarifa === "aneel" ? "media" : "baixa",
+      dataReferencia: dataReferenciaTarifa,
+      separacaoOrigem: "oficial"
+    };
+  }
+
+  if (temTeOficial || temTusdOficial) {
+    const teKwhDerivado = temTeOficial ? teKwhVigente : tarifaTotal - tusdKwhVigente;
+    const tusdKwhDerivado = temTusdOficial ? tusdKwhVigente : tarifaTotal - teKwhVigente;
+    const derivacaoValida =
+      isValidNumber(teKwhDerivado) &&
+      isValidNumber(tusdKwhDerivado) &&
+      teKwhDerivado >= 0 &&
+      tusdKwhDerivado > 0;
+
+    if (derivacaoValida) {
+      return {
+        tarifaTotalKwh: tarifaTotal,
+        teKwh: teKwhDerivado,
+        tusdKwh: tusdKwhDerivado,
+        fonte: origemTarifa,
+        confianca: "baixa",
+        dataReferencia: dataReferenciaTarifa,
+        separacaoOrigem: "derivada"
+      };
+    }
+  }
+
+  const fallbackSeparacao = aplicarSeparacaoTarifaFallback(tarifaTotal, configuracao);
 
   return {
     tarifaTotalKwh: tarifaTotal,
-    teKwh,
-    tusdKwh,
-    fonte: (tarifaVigente && tarifaVigente.fonte) || "fallback_local",
-    confianca:
-      tarifaVigente && tarifaVigente.fonte === "aneel"
-        ? "media"
-        : "baixa",
-    dataReferencia: normalizarDataReferencia(
-      tarifaVigente && tarifaVigente.dataInicioVigencia
-        ? tarifaVigente.dataInicioVigencia
+    teKwh: fallbackSeparacao.teKwh,
+    tusdKwh: fallbackSeparacao.tusdKwh,
+    fonte: fallbackSeparacao.fonte,
+    confianca: fallbackSeparacao.confianca,
+    dataReferencia: fallbackSeparacao.dataReferencia,
+    separacaoOrigem: fallbackSeparacao.separacaoOrigem
+  };
+}
+
+function normalizarLeiCip(lei) {
+  return {
+    numero:
+      lei && typeof lei === "object" && String(lei.numero || "").trim()
+        ? String(lei.numero || "").trim()
+        : null,
+    descricao:
+      lei && typeof lei === "object" && String(lei.descricao || "").trim()
+        ? String(lei.descricao || "").trim()
         : null
-    )
+  };
+}
+
+function normalizarValoresCip(valores) {
+  if (!Array.isArray(valores)) {
+    return [];
+  }
+
+  return valores
+    .map((item) => {
+      const faixaMin = toNumber(item && item.faixa_kwh_min);
+      const faixaMaxRaw = item && item.faixa_kwh_max;
+      const faixaMax =
+        faixaMaxRaw === null || faixaMaxRaw === undefined ? null : toNumber(faixaMaxRaw);
+      const valor = toNumber(item && item.valor);
+
+      if (!isValidNumber(valor) || valor < 0) {
+        return null;
+      }
+
+      return {
+        faixa_kwh_min: isValidNumber(faixaMin) && faixaMin >= 0 ? faixaMin : 0,
+        faixa_kwh_max:
+          faixaMax === null || (isValidNumber(faixaMax) && faixaMax >= 0) ? faixaMax : null,
+        valor
+      };
+    })
+    .filter(Boolean);
+}
+
+function obterValorFaixaCip(valores, consumoKwh) {
+  const faixas = normalizarValoresCip(valores);
+
+  if (faixas.length === 0) {
+    return 0;
+  }
+
+  const faixaEncontrada = faixas.find((faixa) => {
+    const minimoValido = consumoKwh >= faixa.faixa_kwh_min;
+    const maximoValido = faixa.faixa_kwh_max === null || consumoKwh <= faixa.faixa_kwh_max;
+    return minimoValido && maximoValido;
+  });
+
+  if (faixaEncontrada) {
+    return faixaEncontrada.valor;
+  }
+
+  return faixas[faixas.length - 1].valor;
+}
+
+function normalizarPercentualCip(valor) {
+  const numero = toNumber(valor);
+  if (!isValidNumber(numero) || numero < 0) {
+    return 0;
+  }
+
+  if (numero <= 1) {
+    return numero;
+  }
+
+  if (numero <= 100) {
+    return numero / 100;
+  }
+
+  return 0;
+}
+
+function calcularResumoCipIntegrado({ cidade, uf, consumoKwh, subtotalTributavel }) {
+  const cidadeNormalizada = String(cidade || "").trim();
+  const ufNormalizada = normalizarUf(uf);
+  const resumoBase = {
+    status: "nao_encontrado",
+    valor: 0,
+    modeloCobranca: null,
+    confianca: "baixa",
+    lei: {
+      numero: null,
+      descricao: null
+    },
+    fonteUrl: null,
+    ultimaAtualizacao: null,
+    mensagem: cidadeNormalizada && ufNormalizada
+      ? "CIP nao cadastrada para este municipio."
+      : "Nao foi possivel calcular a CIP sem cidade e UF."
+  };
+
+  if (!cidadeNormalizada || !ufNormalizada) {
+    return {
+      ...resumoBase,
+      item: criarItem({
+        codigo: "cip",
+        tipo: "tributo",
+        escopo: "municipal",
+        origem: "municipal",
+        modelo: "calculado",
+        valor: 0,
+        baseCalculo: "municipio_nao_informado",
+        fonte: "nao_encontrado",
+        confianca: "baixa",
+        dataReferencia: null
+      })
+    };
+  }
+
+  let respostaCip = null;
+  try {
+    respostaCip = cipService.getCipPorCidade(cidadeNormalizada, ufNormalizada);
+  } catch (error) {
+    respostaCip = null;
+  }
+
+  if (!respostaCip || !respostaCip.cip) {
+    return {
+      ...resumoBase,
+      item: criarItem({
+        codigo: "cip",
+        tipo: "tributo",
+        escopo: "municipal",
+        origem: "municipal",
+        modelo: "calculado",
+        valor: 0,
+        baseCalculo: "nao_encontrado",
+        fonte: "nao_encontrado",
+        confianca: "baixa",
+        dataReferencia: null
+      })
+    };
+  }
+
+  const status = String(respostaCip.status || "").trim().toLowerCase() || "nao_encontrado";
+  const modeloCobranca = String(respostaCip.cip.modeloCobranca || "").trim().toLowerCase() || null;
+  const valoresCip = normalizarValoresCip(respostaCip.cip.valores);
+  const lei = normalizarLeiCip(respostaCip.cip.lei);
+  const fonteUrl = respostaCip.cip.fonteUrl || null;
+  const ultimaAtualizacao = normalizarDataReferencia(respostaCip.cip.ultimaAtualizacao);
+  const confianca = normalizarConfianca(
+    respostaCip.cip.confianca || (status === "oficial" ? "media" : "baixa")
+  );
+
+  let valorCip = 0;
+  let modeloItem = "fixo";
+  let baseCalculo = "valor_fixo";
+  let aliquota = null;
+
+  if (status !== "nao_encontrado") {
+    if (modeloCobranca === "percentual_consumo") {
+      const percentual = normalizarPercentualCip(obterValorFaixaCip(valoresCip, consumoKwh));
+      valorCip = subtotalTributavel * percentual;
+      modeloItem = "percentual";
+      baseCalculo = "subtotal_tributavel";
+      aliquota = percentual;
+    } else if (modeloCobranca === "faixa_consumo" || modeloCobranca === "mista") {
+      valorCip = obterValorFaixaCip(valoresCip, consumoKwh);
+      modeloItem = "fixo";
+      baseCalculo = "faixa_consumo";
+    } else {
+      valorCip = obterValorFaixaCip(valoresCip, consumoKwh);
+      modeloItem = "fixo";
+      baseCalculo = "valor_fixo";
+    }
+  }
+
+  const item = criarItem({
+    codigo: "cip",
+    tipo: "tributo",
+    escopo: "municipal",
+    origem: "municipal",
+    modelo: modeloItem,
+    valor: valorCip,
+    baseCalculo,
+    aliquota,
+    fonte: status === "oficial" ? "legislacao_municipal" : status === "estimado" ? "estimativa_municipal" : "nao_encontrado",
+    fonteUrl,
+    confianca,
+    dataReferencia: ultimaAtualizacao
+  });
+
+  return {
+    status: ["oficial", "estimado", "nao_encontrado"].includes(status) ? status : "nao_encontrado",
+    valor: item ? item.valor : 0,
+    modeloCobranca,
+    confianca,
+    lei,
+    fonteUrl,
+    ultimaAtualizacao,
+    mensagem: respostaCip.mensagem || null,
+    item
   };
 }
 
@@ -501,7 +783,7 @@ function calcularFatura(
   const mediaDiaria = arredondar(consumoKwh / dias);
   const ufCalculo = normalizarUf(uf || (distribuidora && distribuidora.uf) || "");
   const cidadeCalculo = String(cidade || "").trim();
-  const tarifaDetalhada = obterTarifaDetalhada(distribuidora);
+  const tarifaDetalhada = obterTarifaDetalhada(distribuidora, configuracao);
   const bandeiraSelecionada = obterBandeira(bandeira);
 
   const itemTe = criarItem({
@@ -609,6 +891,12 @@ function calcularFatura(
     ufCalculo,
     subtotalTributavel
   );
+  const resumoCip = calcularResumoCipIntegrado({
+    cidade: cidadeCalculo,
+    uf: ufCalculo,
+    consumoKwh,
+    subtotalTributavel
+  });
 
   const itens = [
     itemTe,
@@ -618,7 +906,8 @@ function calcularFatura(
     itemPis,
     itemCofins,
     itemIcms,
-    ...itensMunicipais
+    ...itensMunicipais,
+    resumoCip.item
   ].filter(Boolean);
 
   const total = somarItens(itens);
@@ -637,8 +926,16 @@ function calcularFatura(
       valor: itemBandeira ? itemBandeira.valor : 0
     },
     icms: itemIcms ? itemIcms.valor : 0,
-    cip: null,
-    cipCalculadaSeparadamente: true,
+    cip: {
+      status: resumoCip.status,
+      valor: resumoCip.valor,
+      modeloCobranca: resumoCip.modeloCobranca,
+      confianca: resumoCip.confianca,
+      lei: resumoCip.lei,
+      fonteUrl: resumoCip.fonteUrl,
+      ultimaAtualizacao: resumoCip.ultimaAtualizacao,
+      mensagem: resumoCip.mensagem
+    },
     itens,
     total,
     aviso: configuracao.avisoPadrao

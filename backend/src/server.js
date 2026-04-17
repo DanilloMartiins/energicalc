@@ -4,6 +4,7 @@ const app = require("./app");
 const tarifasService = require("./services/tarifasService");
 const bandeiraService = require("./services/bandeiraService");
 const distribuidorasService = require("./services/distribuidorasService");
+const cipService = require("./services/cipService");
 
 const PORT = process.env.PORT || 3000;
 const TARIFAS_SYNC_INTERVALO_PADRAO_MS = 6 * 60 * 60 * 1000;
@@ -15,6 +16,7 @@ const intervaloSincronizacaoMs =
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+  cipService.inicializarCacheCipEmBackground();
   distribuidorasService.inicializarDistribuidorasRepositoryEmBackground();
   tarifasService.sincronizarTarifasNoMesEmBackground();
   bandeiraService.sincronizarBandeiraPorCalendarioEmBackground();

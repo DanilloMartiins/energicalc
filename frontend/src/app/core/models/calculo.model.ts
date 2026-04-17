@@ -12,6 +12,30 @@ export interface CalculoGetPayload {
   diasDecorridos: number;
   distribuidoraId: string;
   bandeira: string;
+  cidade?: string;
+  uf?: string;
+}
+
+export interface ItemCalculo {
+  codigo: string;
+  valor: number;
+  tipo?: string;
+  escopo?: string;
+  modelo?: string;
+}
+
+export interface CipCalculo {
+  status: 'oficial' | 'estimado' | 'nao_encontrado';
+  valor: number;
+  modeloCobranca: string | null;
+  confianca: 'alta' | 'media' | 'baixa' | null;
+  lei: {
+    numero: string | null;
+    descricao: string | null;
+  };
+  fonteUrl: string | null;
+  ultimaAtualizacao: string | null;
+  mensagem?: string | null;
 }
 
 export interface ResultadoCalculo {
@@ -26,8 +50,8 @@ export interface ResultadoCalculo {
     valor: number;
   };
   icms: number;
-  cip: number | null;
-  cipCalculadaSeparadamente: boolean;
+  cip: CipCalculo;
+  itens: ItemCalculo[];
   total: number;
   aviso: string;
 }

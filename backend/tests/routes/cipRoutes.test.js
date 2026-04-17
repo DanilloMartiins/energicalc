@@ -112,4 +112,14 @@ describe("rotas CIP", () => {
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
   });
+
+  it("GET /cip deve retornar 404 para manter contrato oficial em /api/cip", async () => {
+    prepararAmbiente([]);
+
+    const app = require("../../src/app");
+    const response = await request(app).get("/cip").query({ cidade: "Campinas", uf: "SP" });
+
+    expect(response.status).toBe(404);
+    expect(response.body.success).toBe(false);
+  });
 });

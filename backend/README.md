@@ -1,372 +1,229 @@
 # EnergiCalc - Backend
 
-API backend em Node.js + Express para simulacao de fatura de energia de distribuidoras brasileiras.
+API em Node.js + Express para simulação de fatura de energia elétrica.
 
-Arquitetura: route -> controller -> service -> data/repository
+Este backend nasceu como projeto de estudo e foi evoluindo em camadas (`routes -> controllers -> services -> data/repository`) para manter o código organizado e fácil de manter.
 
-## Objetivo do projeto
+## O que a API já faz
 
-Este projeto foi criado para praticar desenvolvimento backend com arquitetura em camadas, validacao de entrada, tratamento de erros e testes automatizados.
+- Simulação de fatura com itens separados (`TE`, `TUSD`, `Bandeira`, `PIS`, `COFINS`, `ICMS`, `CIP`)
+- Consulta de distribuidoras (com filtro e paginação)
+- Resolução de distribuidora por cidade + UF
+- Consulta da bandeira vigente
+- Consulta de tarifas
+- Consulta de impostos base
+- Consulta de CIP por município
+- Fallback local quando fontes externas falham
+- Testes automatizados com Jest + Supertest
 
-O foco e manter um codigo simples, legivel e facil de evoluir.
-
-## Tecnologias usadas
+## Stack
 
 - Node.js
 - Express
-- CommonJS
-- Dotenv
 - Jest
 - Supertest
-- JSON local como fallback
-- PostgreSQL (opcional para distribuidoras)
+- PostgreSQL (opcional para persistência de distribuidoras)
+- JSON local como fallback de dados
 
 ## Arquitetura
 
-Padrao utilizado:
+Padrão adotado:
 
 `routes -> controllers -> services -> data/repository`
 
-Responsabilidade de cada camada:
+Resumo das responsabilidades:
 
-- `routes`: define os endpoints
-- `controllers`: recebe request, valida entrada e devolve response
-- `services`: contem as regras de negocio
-- `data`: acesso aos dados locais/fallback e sincronizacao
-- `repository`: persistencia em banco (quando habilitado)
+- `routes`: define endpoints
+- `controllers`: valida entrada e monta resposta HTTP
+- `services`: regra de negócio
+- `data`: leitura/sincronização/cache/fallback
+- `repository`: integração com banco quando habilitado
 
-## Como instalar e rodar
+## Como rodar
 
-1. Instale as dependencias:
+### 1) Instalar dependências
 
 ```bash
+cd backend
 npm install
 ```
 
-2. Crie o arquivo `.env` na raiz:
+### 2) Configurar `.env` (opcional)
+
+Arquivo: `backend/.env`
 
 ```env
 PORT=3000
 NODE_ENV=development
+
+# Opcional: habilitar banco de distribuidoras
+DB_DISTRIBUIDORAS_ENABLED=false
+DATABASE_URL=
+DB_HOST=
+DB_PORT=5432
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+DB_SSL=false
+
+# Opcional: ajuste de sincronização de dados externos
+ANEEL_TARIFAS_SYNC_INTERVAL_MS=21600000
 ```
 
-3. Rode em desenvolvimento:
+### 3) Subir servidor
 
 ```bash
 npm run dev
 ```
 
-4. Rode em modo normal:
+API disponível em: `http://localhost:3000`
+
+Health check: `http://localhost:3000/health`
+
+## Scripts
 
 ```bash
-npm start
+npm run dev        # sobe backend
+npm start          # sobe backend
+npm test           # roda testes
+npm run cip:sync   # sincronização incremental da base CIP
 ```
 
-Servidor padrao:
+## Endpoints principais
 
-- `http://localhost:3000`
+### `GET /health`
+Retorno básico de saúde da API.
 
-## Variaveis de ambiente
+### `GET /api/distribuidoras`
+Lista distribuidoras.
 
-- `PORT`: porta da aplicacao
-- `NODE_ENV`: ambiente de execucao (`development`, `production`, etc.)
-- `DB_DISTRIBUIDORAS_ENABLED`: habilita persistencia de distribuidoras em banco (`true`/`false`)
-- `DATABASE_URL`: string de conexao PostgreSQL (prioritaria)
-- `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: conexao PostgreSQL por campos separados
-- `DB_SSL`: habilita SSL na conexao PostgreSQL (`true`/`false`)
+Query params opcionais:
+- `uf`
+- `nome`
+- `page`
+- `limit`
 
-Se o banco nao estiver configurado, a API continua funcionando com cache/fallback local.
+### `GET /api/distribuidoras/resolver?cidade=...&uf=...`
+Resolve a distribuidora com base em cidade + UF.
 
-## Padrao de resposta da API
+### `GET /api/bandeira`
+Retorna bandeira vigente e valores por kWh.
 
-Sucesso:
+### `GET /api/tarifas`
+Lista tarifas de distribuidoras (com base em cache e fallback local).
 
-```json
-{
-  "success": true,
-  "data": {}
-}
+### `GET /api/impostos`
+Retorna impostos base usados na simulação.
+
+### `GET /api/cip?cidade=...&uf=...`
+Retorna status e estrutura de CIP por município.
+
+Status possíveis:
+- `oficial`
+- `estimado`
+- `nao_encontrado`
+
+### `GET /api/calculo`
+Simulação principal com leituras.
+
+Query params obrigatórios:
+- `leituraAnterior`
+- `leituraAtual`
+- `diasDecorridos`
+- `bandeira`
+- e uma origem de distribuidora:
+  - `distribuidoraId`, ou
+  - `cidade + uf`
+
+### `POST /api/calculo`
+Simulação por consumo direto.
+
+Body esperado:
+- `consumo`
+- `bandeira`
+- `distribuidora` (nome) **ou** `cidade + uf`
+
+## Exemplo rápido de cálculo
+
+```http
+GET /api/calculo?leituraAnterior=1000&leituraAtual=2000&diasDecorridos=30&cidade=Vila%20Velha&uf=ES&bandeira=verde
 ```
 
-Erro:
-
-```json
-{
-  "success": false,
-  "error": {
-    "message": "Mensagem de erro"
-  }
-}
-```
-
-## Endpoints disponiveis
-
-### 1) Health check
-
-- Metodo: `GET`
-- URL: `/health`
-
-Exemplo de resposta:
+Exemplo de retorno (resumido):
 
 ```json
 {
   "success": true,
   "data": {
-    "status": "ok"
-  }
-}
-```
-
-### 2) Listar distribuidoras
-
-- Metodo: `GET`
-- URL: `/api/distribuidoras`
-- Query params opcionais:
-  - `uf` (filtro exato, ex: `PE`)
-  - `nome` (filtro parcial, sem diferenciar maiuscula/minuscula)
-  - `page` (paginacao)
-  - `limit` (paginacao)
-
-Exemplo de resposta:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "codigo": "ENEL_SP",
-      "nome": "Enel Sao Paulo",
-      "uf": "SP"
-    }
-  ]
-}
-```
-
-Exemplo com filtros:
-
-```http
-GET /api/distribuidoras?uf=BA&nome=neoenergia
-```
-
-Exemplo de resposta com filtros:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "codigo": "COELBA",
-      "nome": "Neoenergia Coelba",
-      "uf": "BA"
-    }
-  ]
-}
-```
-
-Exemplo com paginacao:
-
-```http
-GET /api/distribuidoras?page=1&limit=2
-```
-
-Exemplo de resposta com paginacao:
-
-```json
-{
-  "success": true,
-  "data": {
-    "items": [
-      {
-        "codigo": "ENEL_SP",
-        "nome": "Enel Sao Paulo",
-        "uf": "SP"
-      },
-      {
-        "codigo": "CPFL_PAULISTA",
-        "nome": "CPFL Paulista",
-        "uf": "SP"
-      }
+    "statusSimulacao": "simulado",
+    "distribuidora": "EDP Espírito Santo",
+    "consumoKwh": 1000,
+    "itens": [
+      { "codigo": "te", "valor": 0 },
+      { "codigo": "tusd", "valor": 0 },
+      { "codigo": "pis", "valor": 0 },
+      { "codigo": "cofins", "valor": 0 },
+      { "codigo": "icms", "valor": 0 },
+      { "codigo": "cip", "valor": 0 }
     ],
-    "pagination": {
-      "page": 1,
-      "limit": 2,
-      "totalItems": 3,
-      "totalPages": 2
-    }
-  }
-}
-```
-
-### 3) Obter bandeira atual
-
-- Metodo: `GET`
-- URL: `/api/bandeira`
-
-Exemplo de resposta:
-
-```json
-{
-  "success": true,
-  "data": {
-    "vigente": "verde",
-    "valoresKwh": {
-      "verde": 0,
-      "amarela": 0.01874,
-      "vermelha_p1": 0.03971,
-      "vermelha_p2": 0.09492
-    }
-  }
-}
-```
-
-### 4) Listar tarifas
-
-- Metodo: `GET`
-- URL: `/api/tarifas`
-
-Exemplo de resposta:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "distribuidora": "Enel Sao Paulo",
-      "tarifaKwh": 0.82
+    "cip": {
+      "status": "oficial",
+      "valor": 0,
+      "modeloCobranca": "faixa_consumo",
+      "confianca": "media",
+      "lei": {
+        "numero": "...",
+        "descricao": "..."
+      },
+      "fonteUrl": "...",
+      "ultimaAtualizacao": "..."
     },
-    {
-      "distribuidora": "CPFL Paulista",
-      "tarifaKwh": 0.82
-    },
-    {
-      "distribuidora": "Neoenergia Coelba",
-      "tarifaKwh": 0.82
-    }
-  ]
-}
-```
-
-### 5) Listar impostos
-
-- Metodo: `GET`
-- URL: `/api/impostos`
-
-Exemplo de resposta:
-
-```json
-{
-  "success": true,
-  "data": {
-    "icms": 0.25,
-    "pis": 0.0165,
-    "cofins": 0.076
+    "total": 0,
+    "aviso": "Esta simulação não considera valores adicionais como multas..."
   }
 }
 ```
 
-### 6) Calcular fatura
+## Sincronização e fallback
 
-- Metodo: `GET`
-- URL: `/api/calculo`
-- Query params obrigatorios:
-  - `leituraAnterior`
-  - `leituraAtual`
-  - `diasDecorridos`
-  - `distribuidoraId`
-  - `bandeira`
+No boot do servidor, o projeto inicializa sincronizações em background para:
+- tarifas
+- bandeira
+- distribuidoras
+- cobertura de distribuidoras
+- cache CIP
 
-Exemplo de requisicao:
+Se algum provedor externo ficar indisponível, o sistema continua com base local/cache para não travar a aplicação.
 
-```http
-GET /api/calculo?leituraAnterior=100&leituraAtual=150&diasDecorridos=30&distribuidoraId=1&bandeira=verde
-```
+## Testes
 
-Exemplo de resposta de sucesso:
-
-```json
-{
-  "success": true,
-  "data": {
-    "distribuidora": "Enel Sao Paulo",
-    "consumoKwh": 50,
-    "mediaDiaria": 1.67,
-    "diasDecorridos": 30,
-    "valorEnergia": 41,
-    "bandeira": {
-      "tipo": "verde",
-      "valor": 0
-    },
-    "icms": 10.25,
-    "cip": 0,
-    "total": 51.25
-  }
-}
-```
-
-Exemplo de erro de validacao:
-
-```json
-{
-  "success": false,
-  "error": {
-    "message": "leitura anterior, leitura atual e dias decorridos devem ser maiores que zero."
-  }
-}
-```
-
-### 7) Calcular fatura (POST)
-
-- Metodo: `POST`
-- URL: `/api/calculo`
-- Body JSON:
-  - `consumo`
-  - `distribuidora`
-  - `bandeira`
-
-Observacao atual:
-
-- O service principal ainda usa `leituraAnterior`, `leituraAtual` e `diasDecorridos`.
-- No `POST /api/calculo`, existe uma adaptacao simples:
-  - `leituraAnterior = 0`
-  - `leituraAtual = consumo`
-  - `diasDecorridos = 30`
-
-Essa abordagem atende o MVP e podera ser melhorada nas proximas evolucoes.
-
-## Como rodar os testes
+Rodar:
 
 ```bash
 npm test
 ```
 
-## Estrutura de pastas (resumo)
+Os testes cobrem rotas e serviços principais (incluindo cálculo e CIP).
+
+## Estrutura de pastas
 
 ```text
-src/
-  app.js
-  server.js
-  routes/
-  controllers/
-  services/
-  data/
-  middlewares/
-  utils/
-tests/
-  services/
-  controllers/
-  routes/
+backend/
+  src/
+    app.js
+    server.js
+    routes/
+    controllers/
+    services/
+    data/
+    repositories/
+    middlewares/
+    utils/
+  scripts/
+  tests/
 ```
 
-## Proximo passo sugerido
+## Observação importante
 
-Como evolucao futura, pode ser adicionada documentacao com Swagger para facilitar consumo da API, mas isso ainda nao foi implementado neste projeto.
-
-## Melhorias futuras (espaco para evolucao)
-
-- [ ] Permitir informar `diasDecorridos` no `POST /api/calculo`
-- [ ] Evoluir o mapeamento de consumo para suportar novos cenarios de negocio
-- [ ] Validar regras de bandeira com fonte externa em tempo real
-- [ ] Adicionar autenticacao da API (se necessario)
-- [ ] Documentar endpoints com Swagger/OpenAPI
-- [ ] ______________________________
-- [ ] ______________________________
+Este projeto está em fase de refinamento de fidelidade com faturas reais.
+A base está estável para evolução incremental, sem precisar refatorar tudo de uma vez.

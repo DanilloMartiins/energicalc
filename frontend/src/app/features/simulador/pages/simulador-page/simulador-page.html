@@ -119,26 +119,19 @@
           <dt>Média diária</dt>
           <dd>{{ resultado.mediaDiaria | number: "1.0-2" }} kWh</dd>
         </div>
-        <div>
-          <dt>Valor da energia</dt>
-          <dd>R$ {{ resultado.valorEnergia | number: "1.2-2" }}</dd>
-        </div>
-        <div>
-          <dt>Bandeira</dt>
-          <dd>
-            {{ formatarBandeira(resultado.bandeira.tipo) }}
-            (R$ {{ resultado.bandeira.valor | number: "1.2-2" }})
-          </dd>
-        </div>
-        <div>
-          <dt>ICMS</dt>
-          <dd>R$ {{ resultado.icms | number: "1.2-2" }}</dd>
-        </div>
-        <div>
-          <dt>CIP</dt>
-          <dd>R$ {{ resultado.cip | number: "1.2-2" }}</dd>
-        </div>
       </dl>
+
+      <section class="fatura-itens" *ngIf="itensResumoFatura.length > 0">
+        <p class="fatura-itens-titulo">Itens da fatura</p>
+
+        <div class="fatura-item" *ngFor="let item of itensResumoFatura">
+          <div class="fatura-item-cabecalho">
+            <p>{{ item.nome }}</p>
+            <strong>R$ {{ item.valor | number: "1.2-2" }}</strong>
+          </div>
+          <small>{{ item.descricao }}</small>
+        </div>
+      </section>
     </article>
 
     <ng-template #estadoInicial>

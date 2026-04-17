@@ -6,6 +6,7 @@
     "dev:reset": "node scripts/reset-dev.js",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run start",
-    "install:all": "npm --prefix backend install && npm --prefix frontend install"
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "cip:sync": "npm --prefix backend run cip:sync --"
   }
 }

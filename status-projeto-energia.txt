@@ -1,0 +1,163 @@
+STATUS DO PROJETO - SIMULADOR DE FATURA DE ENERGIA
+
+Data da pausa:
+17/04/2026
+
+CONTEXTO GERAL
+
+Projeto backend + frontend para simulação de fatura de energia elétrica no Brasil.
+
+Objetivo:
+Simular o valor da conta de energia o mais próximo possível da realidade, considerando:
+- Consumo
+- Distribuidora
+- Estado (UF)
+- Município
+- Tributos e encargos
+- CIP (Contribuição de Iluminação Pública)
+
+O QUE JÁ FOI IMPLEMENTADO
+
+DISTRIBUIDORAS
+- Identificação automática por cidade + UF
+- Base de dados local estruturada
+- Nomes padronizados
+- Grupos de distribuidoras definidos
+- Lookup otimizado com Map
+
+CIP (ILUMINAÇÃO PÚBLICA)
+- Base nacional criada (`cip.json`)
+- Pipeline incremental funcional
+- Parser de legislação
+- Coletor de dados
+- Merge incremental seguro
+- Status:
+  - oficial
+  - estimado
+  - nao_encontrado
+- Estrutura com:
+  - modelo de cobrança
+  - valores
+  - lei
+  - fonteUrl
+  - confianca
+  - ultimaAtualizacao
+
+CÁLCULO (billingService)
+- Separação de itens:
+  - TE
+  - TUSD
+  - Bandeira
+  - PIS
+  - COFINS
+  - ICMS
+  - CIP (integrada no total)
+- Estrutura com metadados:
+  - tipo
+  - escopo
+  - modelo
+  - base de cálculo
+  - fonte/fonteUrl
+  - confianca
+  - dataReferencia
+- Aviso de simulação implementado
+- Exclusão correta de:
+  - multa
+  - juros
+  - parcelamentos
+  - compensações
+
+API
+- `/api/calculo` funcional
+- `/api/cip` funcional
+- Payload estruturado com itens e rastreabilidade
+- Testes automatizados passando
+
+FRONTEND
+- Tela de simulação funcional
+- Exibição de consumo, distribuidora, cidade/UF e itens da fatura
+- Layout de resumo com itens principais e descrições curtas
+
+ONDE O PROJETO PAROU
+
+Fase atual:
+Refinamento de fidelidade com fatura real.
+
+Sistema funciona ponta a ponta, mas ainda precisa de ajuste fino para reproduzir a conta real com maior precisão.
+
+PONTOS A AJUSTAR
+
+1) CIP divergente em alguns municípios
+Exemplo observado:
+- Carpina (PE)
+- Simulação: valor inferior ao da conta real
+
+Possível causa:
+- base incompleta ou fallback não ideal para o município
+
+2) TE/TUSD ainda com divergências em certos cenários
+Possíveis causas:
+- tarifa base incorreta para a distribuidora
+- fallback genérico em situações de baixa cobertura de dados
+- falta de recorte por classe/modalidade quando necessário
+
+3) PIS/COFINS com alíquotas genéricas
+Possível causa:
+- uso de alíquota padrão e não regra mais específica por distribuidora/período
+
+4) ICMS com necessidade de validação oficial
+- estrutura por UF já existe
+- ainda precisa consolidar fontes normativas oficiais
+
+5) Composição da fatura ainda simplificada
+- cálculo atual é consistente para simulação
+- em alguns casos a lógica da conta real embute componentes de forma diferente
+
+PRIORIDADES NA RETOMADA
+
+ALTA PRIORIDADE
+1. Fechar casos de CIP com divergência real
+2. Ajustar TE/TUSD com base oficial por distribuidora
+3. Refinar PIS/COFINS por regra aplicável
+4. Revisar base de cálculo dos tributos em casos de borda
+
+MÉDIA PRIORIDADE
+5. Melhorar fallback de tarifas por contexto
+6. Consolidar ICMS com fonte oficial por UF/faixa
+7. Refinar composição da fatura para maior aderência à conta real
+
+BAIXA PRIORIDADE
+8. Ajustes visuais de detalhe no frontend
+9. Telas auxiliares de debug para suporte interno (opcional)
+10. Otimizações gerais
+
+OBJETIVO FINAL
+
+Simular a fatura com:
+- alta fidelidade com a conta real
+- precisão por distribuidora
+- precisão por município (CIP)
+- cálculo tributário consistente
+- transparência no cálculo
+
+OBSERVAÇÃO IMPORTANTE
+
+O projeto já saiu da fase de MVP e entrou na fase de refinamento regulatório.
+Agora o ganho vem de:
+- validação com faturas reais
+- ajuste fino de regras
+- consolidação de fontes oficiais
+
+PRÓXIMO PASSO AO RETOMAR
+
+1. Escolher uma distribuidora foco (ex.: Neoenergia PE)
+2. Usar 1 ou mais faturas reais como referência
+3. Ajustar cálculo para aproximar item a item
+4. Expandir o padrão para outras distribuidoras
+
+RESUMO FINAL
+
+- Projeto funcional
+- Arquitetura sólida
+- Base de dados estruturada
+- Próxima etapa: aumentar fidelidade com conta real

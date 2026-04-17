@@ -1,8 +1,27 @@
 const calculoService = require("../../src/services/calculoService");
 const tarifasService = require("../../src/services/tarifasService");
+const cipService = require("../../src/services/cipService");
 
 describe("calculoService", () => {
   describe("calcular", () => {
+    beforeEach(() => {
+      jest.spyOn(cipService, "getCipPorCidade").mockReturnValue({
+        status: "nao_encontrado",
+        mensagem: "CIP nao cadastrada para este municipio.",
+        municipio: "Cidade X",
+        uf: "SP",
+        codigoMunicipioIBGE: "0000000",
+        cip: {
+          modeloCobranca: null,
+          valores: [],
+          lei: { numero: null, descricao: null },
+          fonteUrl: null,
+          confianca: null,
+          ultimaAtualizacao: null
+        }
+      });
+    });
+
     afterEach(() => {
       jest.restoreAllMocks();
     });
@@ -28,8 +47,10 @@ describe("calculoService", () => {
           valor: 0
         },
         icms: 5.7,
-        cip: null,
-        cipCalculadaSeparadamente: true,
+        cip: {
+          status: "nao_encontrado",
+          valor: 0
+        },
         aviso: expect.any(String)
       });
       expect(Array.isArray(resultado.itens)).toBe(true);
@@ -50,6 +71,45 @@ describe("calculoService", () => {
       expect(resultado.distribuidora).toBe("CPFL Paulista");
       expect(resultado.uf).toBe("SP");
       expect(resultado.total).toBe(54.56);
+    });
+
+    it("deve integrar CIP quando houver retorno oficial para cidade + uf", () => {
+      jest.spyOn(cipService, "getCipPorCidade").mockReturnValue({
+        status: "oficial",
+        mensagem: null,
+        municipio: "Campinas",
+        uf: "SP",
+        codigoMunicipioIBGE: "3509502",
+        cip: {
+          modeloCobranca: "valor_fixo",
+          valores: [{ faixa_kwh_min: 0, faixa_kwh_max: null, valor: 15 }],
+          lei: { numero: "11453/2002", descricao: "Institui a CIP" },
+          fonteUrl: "https://prefeitura.example/cip",
+          confianca: "alta",
+          ultimaAtualizacao: "2026-04-01T10:00:00.000Z"
+        }
+      });
+
+      const resultado = calculoService.calcular({
+        leituraAnterior: 100,
+        leituraAtual: 150,
+        diasDecorridos: 30,
+        cidade: "Campinas",
+        uf: "SP",
+        bandeira: "verde"
+      });
+
+      expect(resultado.cip).toEqual(
+        expect.objectContaining({
+          status: "oficial",
+          valor: 15,
+          modeloCobranca: "valor_fixo"
+        })
+      );
+      expect(resultado.itens).toEqual(
+        expect.arrayContaining([expect.objectContaining({ codigo: "cip", valor: 15 })])
+      );
+      expect(resultado.total).toBe(69.56);
     });
 
     it("deve respeitar a bandeira informada na simulacao", () => {

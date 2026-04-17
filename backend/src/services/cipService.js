@@ -227,6 +227,18 @@ function getCipPorCidade(cidade, uf) {
   });
 }
 
+function inicializarCacheCip() {
+  return cipData.getCipCache();
+}
+
+function inicializarCacheCipEmBackground() {
+  Promise.resolve()
+    .then(() => inicializarCacheCip())
+    .catch(() => {
+      // Falha de inicializacao da base CIP nao deve derrubar a API.
+    });
+}
+
 function escolherMelhorRegistro(registros) {
   if (!Array.isArray(registros) || registros.length === 0) {
     return null;
@@ -305,6 +317,8 @@ async function coletarESalvarCipMunicipio({ cidade, uf, codigoMunicipioIBGE = ""
 module.exports = {
   getCipPorCidade,
   coletarESalvarCipMunicipio,
+  inicializarCacheCip,
+  inicializarCacheCipEmBackground,
   __internals: {
     calcularValorEstimadoCip,
     escolherMelhorRegistro,

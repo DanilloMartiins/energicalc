@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { catchError, finalize, map, of, Subscription, switchMap, throwError, timeout } from 'rxjs';
-import { CalculoGetPayload, ResultadoCalculo } from '../../../../core/models/calculo.model';
+import { CalculoGetPayload, ItemCalculo, ResultadoCalculo } from '../../../../core/models/calculo.model';
 import { BandeiraAtual } from '../../../../core/models/bandeira.model';
 import { ConsultaApiService } from '../../../../core/services/consulta-api.service';
 import { SimuladorApiService } from '../../../../core/services/simulador-api.service';
@@ -67,6 +67,62 @@ export class SimuladorPage implements OnInit, OnDestroy {
   ultimaChaveSimulacao = '';
   requisicaoSimulacao: Subscription | null = null;
   simulacaoWatchdogId: number | null = null;
+
+  private readonly ordemExibicaoItens = [
+    'te',
+    'tusd',
+    'bandeira',
+    'pis',
+    'cofins',
+    'icms',
+    'cip',
+    'correcao_monetaria',
+    'icms_cde',
+    'ipca_nf',
+  ];
+
+  private readonly detalhesItens: Record<string, { nome: string; descricao: string }> = {
+    te: {
+      nome: 'TE',
+      descricao: 'Energia consumida',
+    },
+    tusd: {
+      nome: 'TUSD',
+      descricao: 'Uso da rede de distribuicao',
+    },
+    pis: {
+      nome: 'PIS',
+      descricao: 'Tributo federal',
+    },
+    cofins: {
+      nome: 'COFINS',
+      descricao: 'Tributo federal',
+    },
+    icms: {
+      nome: 'ICMS',
+      descricao: 'Tributo estadual',
+    },
+    cip: {
+      nome: 'CIP',
+      descricao: 'Tributo municipal',
+    },
+    bandeira: {
+      nome: 'Bandeira',
+      descricao: 'Encargo regulatorio',
+    },
+    correcao_monetaria: {
+      nome: 'Correcao monetaria',
+      descricao: 'Encargo regulatorio',
+    },
+    icms_cde: {
+      nome: 'ICMS CDE',
+      descricao: 'Encargo regulatorio',
+    },
+    ipca_nf: {
+      nome: 'IPCA NF',
+      descricao: 'Encargo regulatorio',
+    },
+  };
 
   ngOnInit(): void {
     this.sincronizarEstadoCampos();
@@ -130,7 +186,7 @@ export class SimuladorPage implements OnInit, OnDestroy {
             return throwError(() => new Error('DISTRIBUIDORA_NAO_ENCONTRADA_POR_CIDADE_UF'));
           }
 
-          const payload = this.montarPayloadGet(distribuidora.codigo, bandeira);
+          const payload = this.montarPayloadGet(distribuidora.codigo, bandeira, cidade, uf);
           return this.simuladorApiService.calcularFaturaGet(payload).pipe(
             timeout(15000),
             map((resultado) => ({ resultado })),
@@ -209,6 +265,24 @@ export class SimuladorPage implements OnInit, OnDestroy {
     }
 
     return leituraAtual - leituraAnterior;
+  }
+
+  get itensResumoFatura(): { codigo: string; nome: string; descricao: string; valor: number }[] {
+    if (!this.resultado) {
+      return [];
+    }
+
+    const itens = Array.isArray(this.resultado.itens) ? this.resultado.itens : [];
+    const itensFormatados = itens
+      .map((item) => this.transformarItemResumo(item))
+      .filter(
+        (item): item is { codigo: string; nome: string; descricao: string; valor: number } =>
+          item !== null,
+      );
+
+    return itensFormatados.sort((itemA, itemB) => {
+      return this.obterPesoItem(itemA.codigo) - this.obterPesoItem(itemB.codigo);
+    });
   }
 
   mensagemErroLeituraAnterior(): string {
@@ -309,6 +383,52 @@ export class SimuladorPage implements OnInit, OnDestroy {
       .join(' ');
   }
 
+  private transformarItemResumo(
+    item: ItemCalculo,
+  ): { codigo: string; nome: string; descricao: string; valor: number } | null {
+    const codigo = String(item?.codigo || '')
+      .trim()
+      .toLowerCase();
+    const valor = Number(item?.valor);
+
+    if (!codigo || !Number.isFinite(valor)) {
+      return null;
+    }
+
+    return {
+      codigo,
+      nome: this.obterNomeItem(codigo),
+      descricao: this.obterDescricaoItem(codigo),
+      valor,
+    };
+  }
+
+  private obterNomeItem(codigo: string): string {
+    const detalhe = this.detalhesItens[codigo];
+    if (detalhe) {
+      return detalhe.nome;
+    }
+
+    return codigo
+      .split('_')
+      .map((trecho) => trecho.charAt(0).toUpperCase() + trecho.slice(1))
+      .join(' ');
+  }
+
+  private obterDescricaoItem(codigo: string): string {
+    const detalhe = this.detalhesItens[codigo];
+    if (detalhe) {
+      return detalhe.descricao;
+    }
+
+    return 'Item da fatura';
+  }
+
+  private obterPesoItem(codigo: string): number {
+    const indice = this.ordemExibicaoItens.indexOf(codigo);
+    return indice >= 0 ? indice : this.ordemExibicaoItens.length + 1;
+  }
+
   private carregarDadosIniciais(): void {
     this.carregandoOpcoes = true;
     this.sincronizarEstadoCampos();
@@ -372,13 +492,20 @@ export class SimuladorPage implements OnInit, OnDestroy {
     }
   }
 
-  private montarPayloadGet(distribuidoraCodigo: string, bandeira: string): CalculoGetPayload {
+  private montarPayloadGet(
+    distribuidoraCodigo: string,
+    bandeira: string,
+    cidade: string,
+    uf: string,
+  ): CalculoGetPayload {
     return {
       leituraAnterior: Number(this.formulario.controls.leituraAnterior.value),
       leituraAtual: Number(this.formulario.controls.leituraAtual.value),
       diasDecorridos: Number(this.formulario.controls.diasDecorridos.value),
       distribuidoraId: distribuidoraCodigo,
       bandeira: bandeira.toLowerCase(),
+      cidade: cidade.trim(),
+      uf: uf.trim().toUpperCase(),
     };
   }
 

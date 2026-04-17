@@ -30,6 +30,8 @@ export class SimuladorApiService {
           diasDecorridos: String(payload.diasDecorridos),
           distribuidoraId: payload.distribuidoraId,
           bandeira: payload.bandeira,
+          cidade: payload.cidade ?? '',
+          uf: payload.uf ?? '',
         },
       })
       .pipe(map((response) => response.data));

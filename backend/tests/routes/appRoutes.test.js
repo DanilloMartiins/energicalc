@@ -64,8 +64,10 @@ describe("Rotas da API", () => {
         distribuidora: "Enel São Paulo",
         consumoKwh: 50,
         statusSimulacao: "simulado",
-        cip: null,
-        cipCalculadaSeparadamente: true,
+        cip: {
+          status: "nao_encontrado",
+          valor: 0
+        },
         total: 57.59,
         aviso: expect.any(String)
       }

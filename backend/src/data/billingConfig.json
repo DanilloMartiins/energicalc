@@ -652,6 +652,14 @@
     }
   ],
   "impostosMunicipais": [],
+  "separacaoTarifaFallback": {
+    "tePercentual": 0.4,
+    "tusdPercentual": 0.6,
+    "fonte": "fallback_parametrizado",
+    "confianca": "baixa",
+    "observacao": "Usado quando a base tarifaria nao traz separacao confiavel entre TE e TUSD.",
+    "ultimaAtualizacao": "2026-04-01"
+  },
   "icmsRegras": [
     {
       "uf": "DEFAULT",
